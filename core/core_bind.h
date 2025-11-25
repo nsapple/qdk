@@ -163,8 +163,6 @@ protected:
 	static inline OS *singleton = nullptr;
 
 #ifndef DISABLE_DEPRECATED
-	Dictionary _execute_with_pipe_bind_compat_94434(const String &p_path, const Vector<String> &p_arguments);
-
 	String _read_string_from_stdin_bind_compat_91201();
 	static void _bind_compatibility_methods();
 #endif
