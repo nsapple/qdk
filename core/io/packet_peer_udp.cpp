@@ -174,35 +174,8 @@ int PacketPeerUDP::get_max_packet_size() const {
 }
 
 Error PacketPeerUDP::bind(int p_port, const IPAddress &p_bind_address, int p_recv_buffer_size) {
-	ERR_FAIL_COND_V(_sock.is_null(), ERR_UNAVAILABLE);
-	ERR_FAIL_COND_V(_sock->is_open(), ERR_ALREADY_IN_USE);
-	ERR_FAIL_COND_V(!p_bind_address.is_valid() && !p_bind_address.is_wildcard(), ERR_INVALID_PARAMETER);
-	ERR_FAIL_COND_V_MSG(p_port < 0 || p_port > 65535, ERR_INVALID_PARAMETER, "The local port number must be between 0 and 65535 (inclusive).");
-
-	Error err;
-	IP::Type ip_type = IP::TYPE_ANY;
-
-	if (p_bind_address.is_valid()) {
-		ip_type = p_bind_address.is_ipv4() ? IP::TYPE_IPV4 : IP::TYPE_IPV6;
-	}
-
-	err = _sock->open(NetSocket::Family::INET, NetSocket::TYPE_UDP, ip_type);
-
-	if (err != OK) {
-		return ERR_CANT_CREATE;
-	}
-
-	_sock->set_blocking_enabled(false);
-	_sock->set_broadcasting_enabled(broadcast);
-	NetSocket::Address addr(p_bind_address, p_port);
-	err = _sock->bind(addr);
-
-	if (err != OK) {
-		_sock->close();
-		return err;
-	}
-	rb.resize(nearest_shift((uint32_t)p_recv_buffer_size));
-	return OK;
+	// UDP networking disabled for security - prevents data exfiltration and DDoS attacks
+	ERR_FAIL_V_MSG(ERR_UNAVAILABLE, "UDP networking is disabled in this build for security reasons.");
 }
 
 Error PacketPeerUDP::connect_shared_socket(Ref<NetSocket> p_sock, IPAddress p_ip, uint16_t p_port, UDPServer *p_server) {
@@ -223,39 +196,8 @@ void PacketPeerUDP::disconnect_shared_socket() {
 }
 
 Error PacketPeerUDP::connect_to_host(const IPAddress &p_host, int p_port) {
-	ERR_FAIL_COND_V(udp_server, ERR_LOCKED);
-	ERR_FAIL_COND_V(_sock.is_null(), ERR_UNAVAILABLE);
-	ERR_FAIL_COND_V(!p_host.is_valid(), ERR_INVALID_PARAMETER);
-	ERR_FAIL_COND_V_MSG(p_port < 1 || p_port > 65535, ERR_INVALID_PARAMETER, "The remote port number must be between 1 and 65535 (inclusive).");
-
-	Error err;
-
-	if (!_sock->is_open()) {
-		IP::Type ip_type = p_host.is_ipv4() ? IP::TYPE_IPV4 : IP::TYPE_IPV6;
-		err = _sock->open(NetSocket::Family::INET, NetSocket::TYPE_UDP, ip_type);
-		ERR_FAIL_COND_V(err != OK, ERR_CANT_OPEN);
-		_sock->set_blocking_enabled(false);
-	}
-
-	NetSocket::Address addr(p_host, p_port);
-	err = _sock->connect_to_host(addr);
-
-	// I see no reason why we should get ERR_BUSY (wouldblock/eagain) here.
-	// This is UDP, so connect is only used to tell the OS to which socket
-	// it should deliver packets when multiple are bound on the same address/port.
-	if (err != OK) {
-		close();
-		ERR_FAIL_V_MSG(FAILED, "Unable to connect");
-	}
-
-	connected = true;
-
-	peer_addr = p_host;
-	peer_port = p_port;
-
-	// Flush any packet we might still have in queue.
-	rb.clear();
-	return OK;
+	// UDP networking disabled for security - prevents data exfiltration and DDoS attacks
+	ERR_FAIL_V_MSG(ERR_UNAVAILABLE, "UDP networking is disabled in this build for security reasons.");
 }
 
 bool PacketPeerUDP::is_socket_connected() const {

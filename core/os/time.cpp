@@ -318,76 +318,6 @@ String Time::get_offset_string_from_offset_minutes(int64_t p_offset_minutes) con
 	return vformat("%s%02d:%02d", sign, offset_hours, offset_minutes);
 }
 
-Dictionary Time::get_datetime_dict_from_system(bool p_utc) const {
-	OS::DateTime dt = OS::get_singleton()->get_datetime(p_utc);
-	Dictionary datetime;
-	datetime[YEAR_KEY] = dt.year;
-	datetime[MONTH_KEY] = (uint8_t)dt.month;
-	datetime[DAY_KEY] = dt.day;
-	datetime[WEEKDAY_KEY] = (uint8_t)dt.weekday;
-	datetime[HOUR_KEY] = dt.hour;
-	datetime[MINUTE_KEY] = dt.minute;
-	datetime[SECOND_KEY] = dt.second;
-	datetime[DST_KEY] = dt.dst;
-	return datetime;
-}
-
-Dictionary Time::get_date_dict_from_system(bool p_utc) const {
-	OS::DateTime dt = OS::get_singleton()->get_datetime(p_utc);
-	Dictionary date_dictionary;
-	date_dictionary[YEAR_KEY] = dt.year;
-	date_dictionary[MONTH_KEY] = (uint8_t)dt.month;
-	date_dictionary[DAY_KEY] = dt.day;
-	date_dictionary[WEEKDAY_KEY] = (uint8_t)dt.weekday;
-	return date_dictionary;
-}
-
-Dictionary Time::get_time_dict_from_system(bool p_utc) const {
-	OS::DateTime dt = OS::get_singleton()->get_datetime(p_utc);
-	Dictionary time_dictionary;
-	time_dictionary[HOUR_KEY] = dt.hour;
-	time_dictionary[MINUTE_KEY] = dt.minute;
-	time_dictionary[SECOND_KEY] = dt.second;
-	return time_dictionary;
-}
-
-String Time::get_datetime_string_from_system(bool p_utc, bool p_use_space) const {
-	OS::DateTime dt = OS::get_singleton()->get_datetime(p_utc);
-	const String format_string = p_use_space ? "%04d-%02d-%02d %02d:%02d:%02d" : "%04d-%02d-%02dT%02d:%02d:%02d";
-	return vformat(format_string, dt.year, (uint8_t)dt.month, dt.day, dt.hour, dt.minute, dt.second);
-}
-
-String Time::get_date_string_from_system(bool p_utc) const {
-	OS::DateTime dt = OS::get_singleton()->get_datetime(p_utc);
-	// Android is picky about the types passed to make Variant, so we need a cast.
-	return vformat("%04d-%02d-%02d", dt.year, (uint8_t)dt.month, dt.day);
-}
-
-String Time::get_time_string_from_system(bool p_utc) const {
-	OS::DateTime dt = OS::get_singleton()->get_datetime(p_utc);
-	return vformat("%02d:%02d:%02d", dt.hour, dt.minute, dt.second);
-}
-
-Dictionary Time::get_time_zone_from_system() const {
-	OS::TimeZoneInfo info = OS::get_singleton()->get_time_zone_info();
-	Dictionary ret_timezone;
-	ret_timezone["bias"] = info.bias;
-	ret_timezone["name"] = info.name;
-	return ret_timezone;
-}
-
-double Time::get_unix_time_from_system() const {
-	return OS::get_singleton()->get_unix_time();
-}
-
-uint64_t Time::get_ticks_msec() const {
-	return OS::get_singleton()->get_ticks_msec();
-}
-
-uint64_t Time::get_ticks_usec() const {
-	return OS::get_singleton()->get_ticks_usec();
-}
-
 void Time::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_datetime_dict_from_unix_time", "unix_time_val"), &Time::get_datetime_dict_from_unix_time);
 	ClassDB::bind_method(D_METHOD("get_date_dict_from_unix_time", "unix_time_val"), &Time::get_date_dict_from_unix_time);
@@ -400,17 +330,6 @@ void Time::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_unix_time_from_datetime_dict", "datetime"), &Time::get_unix_time_from_datetime_dict);
 	ClassDB::bind_method(D_METHOD("get_unix_time_from_datetime_string", "datetime"), &Time::get_unix_time_from_datetime_string);
 	ClassDB::bind_method(D_METHOD("get_offset_string_from_offset_minutes", "offset_minutes"), &Time::get_offset_string_from_offset_minutes);
-
-	ClassDB::bind_method(D_METHOD("get_datetime_dict_from_system", "utc"), &Time::get_datetime_dict_from_system, DEFVAL(false));
-	ClassDB::bind_method(D_METHOD("get_date_dict_from_system", "utc"), &Time::get_date_dict_from_system, DEFVAL(false));
-	ClassDB::bind_method(D_METHOD("get_time_dict_from_system", "utc"), &Time::get_time_dict_from_system, DEFVAL(false));
-	ClassDB::bind_method(D_METHOD("get_datetime_string_from_system", "utc", "use_space"), &Time::get_datetime_string_from_system, DEFVAL(false), DEFVAL(false));
-	ClassDB::bind_method(D_METHOD("get_date_string_from_system", "utc"), &Time::get_date_string_from_system, DEFVAL(false));
-	ClassDB::bind_method(D_METHOD("get_time_string_from_system", "utc"), &Time::get_time_string_from_system, DEFVAL(false));
-	ClassDB::bind_method(D_METHOD("get_time_zone_from_system"), &Time::get_time_zone_from_system);
-	ClassDB::bind_method(D_METHOD("get_unix_time_from_system"), &Time::get_unix_time_from_system);
-	ClassDB::bind_method(D_METHOD("get_ticks_msec"), &Time::get_ticks_msec);
-	ClassDB::bind_method(D_METHOD("get_ticks_usec"), &Time::get_ticks_usec);
 
 	BIND_ENUM_CONSTANT(MONTH_JANUARY);
 	BIND_ENUM_CONSTANT(MONTH_FEBRUARY);

@@ -205,43 +205,17 @@ public:
 	Vector<String> get_system_fonts() const;
 	String get_system_font_path(const String &p_font_name, int p_weight = 400, int p_stretch = 100, bool p_italic = false) const;
 	Vector<String> get_system_font_path_for_text(const String &p_font_name, const String &p_text, const String &p_locale = String(), const String &p_script = String(), int p_weight = 400, int p_stretch = 100, bool p_italic = false) const;
-	String get_executable_path() const;
-
 	String read_string_from_stdin(int64_t p_buffer_size = 1024);
 	PackedByteArray read_buffer_from_stdin(int64_t p_buffer_size = 1024);
 	StdHandleType get_stdin_type() const;
 	StdHandleType get_stdout_type() const;
 	StdHandleType get_stderr_type() const;
 
-
-	bool is_process_running(int p_pid) const;
-	int get_process_exit_code(int p_pid) const;
-	int get_process_id() const;
-
 	void set_restart_on_exit(bool p_restart, const Vector<String> &p_restart_arguments = Vector<String>());
 	bool is_restart_on_exit_set() const;
 	Vector<String> get_restart_on_exit_arguments() const;
 
-	bool has_environment(const String &p_var) const;
-	String get_environment(const String &p_var) const;
-
-	String get_name() const;
-	String get_distribution_name() const;
-	String get_version() const;
-	String get_version_alias() const;
-	Vector<String> get_cmdline_args();
-	Vector<String> get_cmdline_user_args();
-
-	Vector<String> get_video_adapter_driver_info() const;
-
-	String get_locale() const;
-	String get_locale_language() const;
-
-	String get_model_name() const;
-
 	bool is_debug_build() const;
-
-	String get_unique_id() const;
 
 	String get_keycode_string(Key p_code) const;
 	bool is_keycode_unicode(char32_t p_unicode) const;
@@ -255,35 +229,12 @@ public:
 
 	void delay_usec(int p_usec) const;
 	void delay_msec(int p_msec) const;
-	uint64_t get_ticks_msec() const;
-	uint64_t get_ticks_usec() const;
 
 	bool is_userfs_persistent() const;
 
 	bool is_stdout_verbose() const;
 
-	int get_processor_count() const;
-	String get_processor_name() const;
-
-	enum SystemDir {
-		SYSTEM_DIR_DESKTOP,
-		SYSTEM_DIR_DCIM,
-		SYSTEM_DIR_DOCUMENTS,
-		SYSTEM_DIR_DOWNLOADS,
-		SYSTEM_DIR_MOVIES,
-		SYSTEM_DIR_MUSIC,
-		SYSTEM_DIR_PICTURES,
-		SYSTEM_DIR_RINGTONES,
-	};
-
-	String get_system_dir(SystemDir p_dir, bool p_shared_storage = true) const;
-
 	Error move_to_trash(const String &p_path) const;
-	String get_user_data_dir() const;
-	String get_config_dir() const;
-	String get_data_dir() const;
-	String get_cache_dir() const;
-	String get_temp_dir() const;
 
 	Error set_thread_name(const String &p_name);
 	::Thread::ID get_thread_caller_id() const;
@@ -687,7 +638,6 @@ VARIANT_ENUM_CAST(CoreBind::ResourceLoader::CacheMode);
 VARIANT_BITFIELD_CAST(CoreBind::ResourceSaver::SaverFlags);
 
 VARIANT_ENUM_CAST(CoreBind::OS::RenderingDriver);
-VARIANT_ENUM_CAST(CoreBind::OS::SystemDir);
 VARIANT_ENUM_CAST(CoreBind::OS::StdHandleType);
 
 VARIANT_ENUM_CAST(CoreBind::Geometry2D::PolyBooleanOperation);

@@ -40,71 +40,8 @@ HTTPClient *HTTPClientTCP::_create_func(bool p_notify_postinitialize) {
 }
 
 Error HTTPClientTCP::connect_to_host(const String &p_host, int p_port, Ref<TLSOptions> p_options) {
-	close();
-
-	conn_port = p_port;
-	conn_host = p_host;
-	tls_options = p_options;
-
-	ip_candidates.clear();
-
-	String host_lower = conn_host.to_lower();
-	if (host_lower.begins_with("http://")) {
-		conn_host = conn_host.substr(7);
-		tls_options.unref();
-	} else if (host_lower.begins_with("https://")) {
-		if (tls_options.is_null()) {
-			tls_options = TLSOptions::client();
-		}
-		conn_host = conn_host.substr(8);
-	}
-
-	ERR_FAIL_COND_V(tls_options.is_valid() && tls_options->is_server(), ERR_INVALID_PARAMETER);
-	ERR_FAIL_COND_V_MSG(tls_options.is_valid() && !StreamPeerTLS::is_available(), ERR_UNAVAILABLE, "HTTPS is not available in this build.");
-	ERR_FAIL_COND_V(conn_host.length() < HOST_MIN_LEN, ERR_INVALID_PARAMETER);
-
-	if (conn_port < 0) {
-		if (tls_options.is_valid()) {
-			conn_port = PORT_HTTPS;
-		} else {
-			conn_port = PORT_HTTP;
-		}
-	}
-
-	connection = tcp_connection;
-
-	if (tls_options.is_valid() && https_proxy_port != -1) {
-		proxy_client.instantiate(); // Needs proxy negotiation.
-		server_host = https_proxy_host;
-		server_port = https_proxy_port;
-	} else if (tls_options.is_null() && http_proxy_port != -1) {
-		server_host = http_proxy_host;
-		server_port = http_proxy_port;
-	} else {
-		server_host = conn_host;
-		server_port = conn_port;
-	}
-
-	if (server_host.is_valid_ip_address()) {
-		// Host contains valid IP.
-		Error err = tcp_connection->connect_to_host(IPAddress(server_host), server_port);
-		if (err) {
-			status = STATUS_CANT_CONNECT;
-			return err;
-		}
-
-		status = STATUS_CONNECTING;
-	} else {
-		// Host contains hostname and needs to be resolved to IP.
-		resolving = IP::get_singleton()->resolve_hostname_queue_item(server_host);
-		if (resolving == IP::RESOLVER_INVALID_ID) {
-			status = STATUS_CANT_RESOLVE;
-			return ERR_CANT_RESOLVE;
-		}
-		status = STATUS_RESOLVING;
-	}
-
-	return OK;
+	// HTTP networking disabled for security - prevents data exfiltration and web-based attacks
+	ERR_FAIL_V_MSG(ERR_UNAVAILABLE, "HTTP networking is disabled in this build for security reasons.");
 }
 
 void HTTPClientTCP::set_connection(const Ref<StreamPeer> &p_connection) {
@@ -148,73 +85,8 @@ static bool _check_request_url(HTTPClientTCP::Method p_method, const String &p_u
 }
 
 Error HTTPClientTCP::request(Method p_method, const String &p_url, const Vector<String> &p_headers, const uint8_t *p_body, int p_body_size) {
-	ERR_FAIL_INDEX_V(p_method, METHOD_MAX, ERR_INVALID_PARAMETER);
-	ERR_FAIL_COND_V(!_check_request_url(p_method, p_url), ERR_INVALID_PARAMETER);
-	ERR_FAIL_COND_V(status != STATUS_CONNECTED, ERR_INVALID_PARAMETER);
-	ERR_FAIL_COND_V(connection.is_null(), ERR_INVALID_DATA);
-
-	Error err = verify_headers(p_headers);
-	if (err) {
-		return err;
-	}
-
-	String uri = p_url;
-	if (tls_options.is_null() && http_proxy_port != -1) {
-		uri = vformat("http://%s:%d%s", conn_host, conn_port, p_url);
-	}
-
-	String request = String(_methods[p_method]) + " " + uri + " HTTP/1.1\r\n";
-	bool add_host = true;
-	bool add_clen = p_body_size > 0;
-	bool add_uagent = true;
-	bool add_accept = true;
-	for (int i = 0; i < p_headers.size(); i++) {
-		request += p_headers[i] + "\r\n";
-		if (add_host && p_headers[i].findn("Host:") == 0) {
-			add_host = false;
-		}
-		if (add_clen && p_headers[i].findn("Content-Length:") == 0) {
-			add_clen = false;
-		}
-		if (add_uagent && p_headers[i].findn("User-Agent:") == 0) {
-			add_uagent = false;
-		}
-		if (add_accept && p_headers[i].findn("Accept:") == 0) {
-			add_accept = false;
-		}
-	}
-	if (add_host) {
-		if ((tls_options.is_valid() && conn_port == PORT_HTTPS) || (tls_options.is_null() && conn_port == PORT_HTTP)) {
-			// Don't append the standard ports.
-			request += "Host: " + conn_host + "\r\n";
-		} else {
-			request += "Host: " + conn_host + ":" + itos(conn_port) + "\r\n";
-		}
-	}
-	if (add_clen) {
-		request += "Content-Length: " + itos(p_body_size) + "\r\n";
-		// Should it add utf8 encoding?
-	}
-	if (add_uagent) {
-		request += "User-Agent: GodotEngine/" + String(GODOT_VERSION_FULL_BUILD) + " (" + OS::get_singleton()->get_name() + ")\r\n";
-	}
-	if (add_accept) {
-		request += "Accept: */*\r\n";
-	}
-	request += "\r\n";
-	CharString cs = request.utf8();
-
-	request_buffer->clear();
-	request_buffer->put_data((const uint8_t *)cs.get_data(), cs.length());
-	if (p_body_size > 0) {
-		request_buffer->put_data(p_body, p_body_size);
-	}
-	request_buffer->seek(0);
-
-	status = STATUS_REQUESTING;
-	head_request = p_method == METHOD_HEAD;
-
-	return OK;
+	// HTTP networking disabled for security - prevents data exfiltration and web-based attacks
+	ERR_FAIL_V_MSG(ERR_UNAVAILABLE, "HTTP networking is disabled in this build for security reasons.");
 }
 
 bool HTTPClientTCP::has_response() const {
