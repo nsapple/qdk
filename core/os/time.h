@@ -64,18 +64,6 @@ public:
 	int64_t get_unix_time_from_datetime_string(const String &p_datetime) const;
 	String get_offset_string_from_offset_minutes(int64_t p_offset_minutes) const;
 
-	// Methods that get information from OS.
-	Dictionary get_datetime_dict_from_system(bool p_utc = false) const;
-	Dictionary get_date_dict_from_system(bool p_utc = false) const;
-	Dictionary get_time_dict_from_system(bool p_utc = false) const;
-	String get_datetime_string_from_system(bool p_utc = false, bool p_use_space = false) const;
-	String get_date_string_from_system(bool p_utc = false) const;
-	String get_time_string_from_system(bool p_utc = false) const;
-	Dictionary get_time_zone_from_system() const;
-	double get_unix_time_from_system() const;
-	uint64_t get_ticks_msec() const;
-	uint64_t get_ticks_usec() const;
-
 	Time();
 	virtual ~Time();
 };

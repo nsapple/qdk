@@ -352,10 +352,6 @@ Vector<String> OS::get_system_font_path_for_text(const String &p_font_name, cons
 	return ::OS::get_singleton()->get_system_font_path_for_text(p_font_name, p_text, p_locale, p_script, p_weight, p_stretch, p_italic);
 }
 
-String OS::get_executable_path() const {
-	return ::OS::get_singleton()->get_executable_path();
-}
-
 String OS::read_string_from_stdin(int64_t p_buffer_size) {
 	return ::OS::get_singleton()->get_stdin_string(p_buffer_size);
 }
@@ -374,66 +370,6 @@ OS::StdHandleType OS::get_stdout_type() const {
 
 OS::StdHandleType OS::get_stderr_type() const {
 	return (OS::StdHandleType)::OS::get_singleton()->get_stderr_type();
-}
-
-bool OS::is_process_running(int p_pid) const {
-	return ::OS::get_singleton()->is_process_running(p_pid);
-}
-
-int OS::get_process_exit_code(int p_pid) const {
-	return ::OS::get_singleton()->get_process_exit_code(p_pid);
-}
-
-int OS::get_process_id() const {
-	return ::OS::get_singleton()->get_process_id();
-}
-
-bool OS::has_environment(const String &p_var) const {
-	return ::OS::get_singleton()->has_environment(p_var);
-}
-
-String OS::get_environment(const String &p_var) const {
-	return ::OS::get_singleton()->get_environment(p_var);
-}
-
-String OS::get_name() const {
-	return ::OS::get_singleton()->get_name();
-}
-
-String OS::get_distribution_name() const {
-	return ::OS::get_singleton()->get_distribution_name();
-}
-
-String OS::get_version() const {
-	return ::OS::get_singleton()->get_version();
-}
-
-String OS::get_version_alias() const {
-	return ::OS::get_singleton()->get_version_alias();
-}
-
-Vector<String> OS::get_video_adapter_driver_info() const {
-	return ::OS::get_singleton()->get_video_adapter_driver_info();
-}
-
-Vector<String> OS::get_cmdline_args() {
-	List<String> cmdline = ::OS::get_singleton()->get_cmdline_args();
-	Vector<String> cmdlinev;
-	for (const String &E : cmdline) {
-		cmdlinev.push_back(E);
-	}
-
-	return cmdlinev;
-}
-
-Vector<String> OS::get_cmdline_user_args() {
-	List<String> cmdline = ::OS::get_singleton()->get_cmdline_user_args();
-	Vector<String> cmdlinev;
-	for (const String &E : cmdline) {
-		cmdlinev.push_back(E);
-	}
-
-	return cmdlinev;
 }
 
 void OS::set_restart_on_exit(bool p_restart, const Vector<String> &p_restart_arguments) {
@@ -457,18 +393,6 @@ Vector<String> OS::get_restart_on_exit_arguments() const {
 	}
 
 	return args_vector;
-}
-
-String OS::get_locale() const {
-	return ::OS::get_singleton()->get_locale();
-}
-
-String OS::get_locale_language() const {
-	return ::OS::get_singleton()->get_locale_language();
-}
-
-String OS::get_model_name() const {
-	return ::OS::get_singleton()->get_model_name();
 }
 
 Error OS::set_thread_name(const String &p_name) {
@@ -530,14 +454,6 @@ bool OS::is_userfs_persistent() const {
 	return ::OS::get_singleton()->is_userfs_persistent();
 }
 
-int OS::get_processor_count() const {
-	return ::OS::get_singleton()->get_processor_count();
-}
-
-String OS::get_processor_name() const {
-	return ::OS::get_singleton()->get_processor_name();
-}
-
 bool OS::is_stdout_verbose() const {
 	return ::OS::get_singleton()->is_stdout_verbose();
 }
@@ -546,40 +462,12 @@ Error OS::move_to_trash(const String &p_path) const {
 	return ::OS::get_singleton()->move_to_trash(p_path);
 }
 
-String OS::get_user_data_dir() const {
-	return ::OS::get_singleton()->get_user_data_dir();
-}
-
-String OS::get_config_dir() const {
-	// Exposed as `get_config_dir()` instead of `get_config_path()` for consistency with other exposed OS methods.
-	return ::OS::get_singleton()->get_config_path();
-}
-
-String OS::get_data_dir() const {
-	// Exposed as `get_data_dir()` instead of `get_data_path()` for consistency with other exposed OS methods.
-	return ::OS::get_singleton()->get_data_path();
-}
-
-String OS::get_cache_dir() const {
-	// Exposed as `get_cache_dir()` instead of `get_cache_path()` for consistency with other exposed OS methods.
-	return ::OS::get_singleton()->get_cache_path();
-}
-
-String OS::get_temp_dir() const {
-	// Exposed as `get_temp_dir()` instead of `get_temp_path()` for consistency with other exposed OS methods.
-	return ::OS::get_singleton()->get_temp_path();
-}
-
 bool OS::is_debug_build() const {
 #ifdef DEBUG_ENABLED
 	return true;
 #else
 	return false;
 #endif // DEBUG_ENABLED
-}
-
-String OS::get_system_dir(SystemDir p_dir, bool p_shared_storage) const {
-	return ::OS::get_singleton()->get_system_dir(::OS::SystemDir(p_dir), p_shared_storage);
 }
 
 String OS::get_keycode_string(Key p_code) const {
@@ -608,10 +496,6 @@ Vector<String> OS::get_granted_permissions() const {
 
 void OS::revoke_granted_permissions() {
 	::OS::get_singleton()->revoke_granted_permissions();
-}
-
-String OS::get_unique_id() const {
-	return ::OS::get_singleton()->get_unique_id();
 }
 
 void OS::add_logger(const Ref<Logger> &p_logger) {
@@ -672,13 +556,9 @@ void OS::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_delta_smoothing", "delta_smoothing_enabled"), &OS::set_delta_smoothing);
 	ClassDB::bind_method(D_METHOD("is_delta_smoothing_enabled"), &OS::is_delta_smoothing_enabled);
 
-	ClassDB::bind_method(D_METHOD("get_processor_count"), &OS::get_processor_count);
-	ClassDB::bind_method(D_METHOD("get_processor_name"), &OS::get_processor_name);
-
 	ClassDB::bind_method(D_METHOD("get_system_fonts"), &OS::get_system_fonts);
 	ClassDB::bind_method(D_METHOD("get_system_font_path", "font_name", "weight", "stretch", "italic"), &OS::get_system_font_path, DEFVAL(400), DEFVAL(100), DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("get_system_font_path_for_text", "font_name", "text", "locale", "script", "weight", "stretch", "italic"), &OS::get_system_font_path_for_text, DEFVAL(String()), DEFVAL(String()), DEFVAL(400), DEFVAL(100), DEFVAL(false));
-	ClassDB::bind_method(D_METHOD("get_executable_path"), &OS::get_executable_path);
 
 	ClassDB::bind_method(D_METHOD("read_string_from_stdin", "buffer_size"), &OS::read_string_from_stdin, DEFVAL(1024));
 	ClassDB::bind_method(D_METHOD("read_buffer_from_stdin", "buffer_size"), &OS::read_buffer_from_stdin, DEFVAL(1024));
@@ -686,31 +566,12 @@ void OS::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_stdout_type"), &OS::get_stdout_type);
 	ClassDB::bind_method(D_METHOD("get_stderr_type"), &OS::get_stderr_type);
 
-	ClassDB::bind_method(D_METHOD("is_process_running", "pid"), &OS::is_process_running);
-	ClassDB::bind_method(D_METHOD("get_process_exit_code", "pid"), &OS::get_process_exit_code);
-	ClassDB::bind_method(D_METHOD("get_process_id"), &OS::get_process_id);
-
-	ClassDB::bind_method(D_METHOD("has_environment", "variable"), &OS::has_environment);
-	ClassDB::bind_method(D_METHOD("get_environment", "variable"), &OS::get_environment);
-
-	ClassDB::bind_method(D_METHOD("get_name"), &OS::get_name);
-	ClassDB::bind_method(D_METHOD("get_distribution_name"), &OS::get_distribution_name);
-	ClassDB::bind_method(D_METHOD("get_version"), &OS::get_version);
-	ClassDB::bind_method(D_METHOD("get_version_alias"), &OS::get_version_alias);
-	ClassDB::bind_method(D_METHOD("get_cmdline_args"), &OS::get_cmdline_args);
-	ClassDB::bind_method(D_METHOD("get_cmdline_user_args"), &OS::get_cmdline_user_args);
-
-	ClassDB::bind_method(D_METHOD("get_video_adapter_driver_info"), &OS::get_video_adapter_driver_info);
-
 	ClassDB::bind_method(D_METHOD("set_restart_on_exit", "restart", "arguments"), &OS::set_restart_on_exit, DEFVAL(Vector<String>()));
 	ClassDB::bind_method(D_METHOD("is_restart_on_exit_set"), &OS::is_restart_on_exit_set);
 	ClassDB::bind_method(D_METHOD("get_restart_on_exit_arguments"), &OS::get_restart_on_exit_arguments);
 
 	ClassDB::bind_method(D_METHOD("delay_usec", "usec"), &OS::delay_usec);
 	ClassDB::bind_method(D_METHOD("delay_msec", "msec"), &OS::delay_msec);
-	ClassDB::bind_method(D_METHOD("get_locale"), &OS::get_locale);
-	ClassDB::bind_method(D_METHOD("get_locale_language"), &OS::get_locale_language);
-	ClassDB::bind_method(D_METHOD("get_model_name"), &OS::get_model_name);
 
 	ClassDB::bind_method(D_METHOD("is_userfs_persistent"), &OS::is_userfs_persistent);
 	ClassDB::bind_method(D_METHOD("is_stdout_verbose"), &OS::is_stdout_verbose);
@@ -722,13 +583,6 @@ void OS::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_memory_info"), &OS::get_memory_info);
 
 	ClassDB::bind_method(D_METHOD("move_to_trash", "path"), &OS::move_to_trash);
-	ClassDB::bind_method(D_METHOD("get_user_data_dir"), &OS::get_user_data_dir);
-	ClassDB::bind_method(D_METHOD("get_system_dir", "dir", "shared_storage"), &OS::get_system_dir, DEFVAL(true));
-	ClassDB::bind_method(D_METHOD("get_config_dir"), &OS::get_config_dir);
-	ClassDB::bind_method(D_METHOD("get_data_dir"), &OS::get_data_dir);
-	ClassDB::bind_method(D_METHOD("get_cache_dir"), &OS::get_cache_dir);
-	ClassDB::bind_method(D_METHOD("get_temp_dir"), &OS::get_temp_dir);
-	ClassDB::bind_method(D_METHOD("get_unique_id"), &OS::get_unique_id);
 
 	ClassDB::bind_method(D_METHOD("get_keycode_string", "code"), &OS::get_keycode_string);
 	ClassDB::bind_method(D_METHOD("is_keycode_unicode", "code"), &OS::is_keycode_unicode);
@@ -764,15 +618,6 @@ void OS::_bind_methods() {
 	BIND_ENUM_CONSTANT(RENDERING_DRIVER_OPENGL3);
 	BIND_ENUM_CONSTANT(RENDERING_DRIVER_D3D12);
 	BIND_ENUM_CONSTANT(RENDERING_DRIVER_METAL);
-
-	BIND_ENUM_CONSTANT(SYSTEM_DIR_DESKTOP);
-	BIND_ENUM_CONSTANT(SYSTEM_DIR_DCIM);
-	BIND_ENUM_CONSTANT(SYSTEM_DIR_DOCUMENTS);
-	BIND_ENUM_CONSTANT(SYSTEM_DIR_DOWNLOADS);
-	BIND_ENUM_CONSTANT(SYSTEM_DIR_MOVIES);
-	BIND_ENUM_CONSTANT(SYSTEM_DIR_MUSIC);
-	BIND_ENUM_CONSTANT(SYSTEM_DIR_PICTURES);
-	BIND_ENUM_CONSTANT(SYSTEM_DIR_RINGTONES);
 
 	BIND_ENUM_CONSTANT(STD_HANDLE_INVALID);
 	BIND_ENUM_CONSTANT(STD_HANDLE_CONSOLE);
