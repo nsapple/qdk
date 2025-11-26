@@ -112,7 +112,7 @@ bool ObjectDBProfilerPanel::handle_debug_message(const String &p_message, const 
 void ObjectDBProfilerPanel::receive_snapshot(int request_id) {
     const Vector<uint8_t> &in_data = partial_snapshots[request_id].data;
 
-	uint64_t unix_time = Time::get_singleton()->get_unix_time();
+	int64_t unix_time = OS::get_singleton()->get_unix_time();
 	String datetime = Time::get_singleton()->get_datetime_string_from_unix_time(unix_time);
 	String snapshot_file_name = datetime.replace_char('T', '_').replace_char(':', '-');
 

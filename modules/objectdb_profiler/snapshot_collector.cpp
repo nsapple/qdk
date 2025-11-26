@@ -114,7 +114,7 @@ void SnapshotCollector::snapshot_objects(Array *p_arr, Dictionary &p_snapshot_co
 	// Add a header to the snapshot with general data about the state of the game, not tied to any particular object.
 	p_snapshot_context["mem_usage"] = Memory::get_mem_usage();
 	p_snapshot_context["mem_max_usage"] = Memory::get_mem_max_usage();
-	p_snapshot_context["timestamp"] = Time::get_singleton()->get_unix_time();
+	p_snapshot_context["timestamp"] = OS::get_singleton()->get_unix_time();
 
 	p_snapshot_context["game_version"] = get_godot_version_string();
 
