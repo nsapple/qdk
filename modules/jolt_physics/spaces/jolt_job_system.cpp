@@ -43,13 +43,13 @@ void JoltJobSystem::Job::_execute(void *p_user_data) {
 	Job *job = static_cast<Job *>(p_user_data);
 
 #ifdef DEBUG_ENABLED
-	const uint64_t time_start = Time::get_singleton()->get_ticks_usec();
+	const uint64_t time_start = OS::get_singleton()->get_ticks_usec();
 #endif
 
 	job->Execute();
 
 #ifdef DEBUG_ENABLED
-	const uint64_t time_end = Time::get_singleton()->get_ticks_usec();
+	const uint64_t time_end = OS::get_singleton()->get_ticks_usec();
 	const uint64_t time_elapsed = time_end - time_start;
 
 	timings_lock.lock();

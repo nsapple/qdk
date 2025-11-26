@@ -565,9 +565,8 @@ void JoltSpace3D::remove_joint(JoltJoint3D *p_joint) {
 #ifdef DEBUG_ENABLED
 
 void JoltSpace3D::dump_debug_snapshot(const String &p_dir) {
-	const Dictionary datetime = Time::get_singleton()->get_datetime_dict_from_system();
-	const String datetime_str = vformat("%04d-%02d-%02d_%02d-%02d-%02d", datetime["year"], datetime["month"], datetime["day"], datetime["hour"], datetime["minute"], datetime["second"]);
-	const String path = p_dir + vformat("/jolt_snapshot_%s_%d.bin", datetime_str, rid.get_id());
+	// Use RID for unique filename since get_datetime_dict_from_system removed for security
+	const String path = p_dir + vformat("/jolt_snapshot_%d.bin", rid.get_id());
 
 	Ref<FileAccess> file_access = FileAccess::open(path, FileAccess::ModeFlags::WRITE);
 	ERR_FAIL_COND_MSG(file_access.is_null(), vformat("Failed to open '%s' for writing when saving snapshot of physics space with RID '%d'.", path, rid.get_id()));
