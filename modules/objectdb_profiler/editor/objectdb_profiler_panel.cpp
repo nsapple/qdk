@@ -110,9 +110,16 @@ bool ObjectDBProfilerPanel::handle_debug_message(const String &p_message, const 
 }
 
 void ObjectDBProfilerPanel::receive_snapshot(int request_id) {
-	const Vector<uint8_t> &in_data = partial_snapshots[request_id].data;
-	String snapshot_file_name = Time::get_singleton()->get_datetime_string_from_system(false).replace_char('T', '_').replace_char(':', '-');
-	Ref<DirAccess> snapshot_dir = _get_and_create_snapshot_storage_dir();
+    const Vector<uint8_t> &in_data = partial_snapshots[request_id].data;
+
+    String datetime = Time::get_singleton()->get_datetime_string_from_unix_time(
+        Time::get_singleton()->get_unix_time(),
+        false
+    );
+    String snapshot_file_name = datetime.replace_char('T', '_').replace_char(':', '-');
+
+    Ref<DirAccess> snapshot_dir = _get_and_create_snapshot_storage_dir();
+
 	if (snapshot_dir.is_valid()) {
 		Error err;
 		String current_dir = snapshot_dir->get_current_dir();
