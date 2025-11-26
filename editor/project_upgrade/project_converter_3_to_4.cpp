@@ -2306,10 +2306,13 @@ void ProjectConverter3To4::process_gdscript_line(String &line, const RegExContai
 		line = line.replace("OS.get_ticks_usec", "Time.get_ticks_usec");
 	}
 	if (line.contains("OS.get_unix_time")) {
-		line = line.replace("OS.get_unix_time", "Time.get_unix_time_from_system");
+		// OS.get_unix_time still exists in Godot 4, no replacement needed
 	}
 	if (line.contains("OS.get_datetime")) {
-		line = line.replace("OS.get_datetime", "Time.get_datetime_dict_from_system");
+		// Note: OS.get_datetime() in Godot 3 should be manually converted to:
+		// var unix_time = OS.get_unix_time()
+		// var datetime_dict = Time.get_singleton().get_datetime_dict_from_unix_time(unix_time)
+		// This automatic conversion is disabled because Time.get_datetime_dict_from_system() does not exist
 	}
 
 	// OS -> DisplayServer

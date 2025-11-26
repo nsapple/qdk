@@ -477,7 +477,8 @@ Error SceneDebugger::_msg_rq_screenshot(const Array &p_args) {
 	uint32_t suffix_i = 0;
 	String path;
 	while (true) {
-		String datetime = Time::get_singleton()->get_datetime_string_from_system().remove_chars("-T:");
+		int64_t unix_time = OS::get_singleton()->get_unix_time();
+		String datetime = Time::get_singleton()->get_datetime_string_from_unix_time(unix_time).remove_chars("-T:");
 		datetime += itos(Time::get_singleton()->get_ticks_usec());
 		String suffix = datetime + (suffix_i > 0 ? itos(suffix_i) : "");
 		path = TEMP_DIR.path_join("scr-" + suffix + ".png");

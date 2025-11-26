@@ -926,7 +926,7 @@ void EditorNode::_notification(int p_what) {
 		} break;
 
 		case NOTIFICATION_READY: {
-			started_timestamp = Time::get_singleton()->get_unix_time_from_system();
+			started_timestamp = OS::get_singleton()->get_unix_time();
 
 			// Store the default order of bottom docks. It can only be determined dynamically.
 			PackedStringArray bottom_docks;
@@ -3222,7 +3222,7 @@ static String _get_unsaved_scene_dialog_text(String p_scene_filename, uint64_t p
 	// Consider editor startup to be a point of saving, so that when you
 	// close and reopen the editor, you don't get an excessively long
 	// "modified X hours ago".
-	const uint64_t last_modified_seconds = Time::get_singleton()->get_unix_time_from_system() - MAX(p_started_timestamp, FileAccess::get_modified_time(p_scene_filename));
+	const uint64_t last_modified_seconds = OS::get_singleton()->get_unix_time() - MAX(p_started_timestamp, FileAccess::get_modified_time(p_scene_filename));
 	String last_modified_string;
 	if (last_modified_seconds < 120) {
 		last_modified_string = vformat(TTRN("%d second ago", "%d seconds ago", last_modified_seconds), last_modified_seconds);
@@ -3821,7 +3821,8 @@ void EditorNode::_request_screenshot() {
 }
 
 void EditorNode::_screenshot(bool p_use_utc) {
-	String name = "editor_screenshot_" + Time::get_singleton()->get_datetime_string_from_system(p_use_utc).remove_char(':') + ".png";
+	int64_t unix_time = OS::get_singleton()->get_unix_time();
+	String name = "editor_screenshot_" + Time::get_singleton()->get_datetime_string_from_unix_time(unix_time).remove_char(':') + ".png";
 	String path = String("user://") + name;
 
 	if (!EditorRun::request_screenshot(callable_mp(this, &EditorNode::_save_screenshot_with_embedded_process).bind(path))) {

@@ -43,8 +43,9 @@ String ProjectZIPPacker::get_project_zip_safe_name() {
 	// like "Platformer 2: Godette's Revenge" becomes "platformer_2-_godette-s_revenge".
 	const String project_name = GLOBAL_GET("application/config/name");
 	const String project_name_safe = project_name.to_lower().replace_char(' ', '_');
+	int64_t unix_time = OS::get_singleton()->get_unix_time();
 	const String datetime_safe =
-			Time::get_singleton()->get_datetime_string_from_system(false, true).replace_char(' ', '_');
+			Time::get_singleton()->get_datetime_string_from_unix_time(unix_time, true).replace_char(' ', '_');
 	const String output_name = OS::get_singleton()->get_safe_dir_name(vformat("%s_%s.zip", project_name_safe, datetime_safe));
 	return output_name;
 }

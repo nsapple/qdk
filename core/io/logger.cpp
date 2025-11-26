@@ -144,7 +144,8 @@ void RotatedFileLogger::rotate_file() {
 
 	if (FileAccess::exists(base_path)) {
 		if (max_files > 1) {
-			String timestamp = Time::get_singleton()->get_datetime_string_from_system().replace_char(':', '.');
+			int64_t unix_time = OS::get_singleton()->get_unix_time();
+			String timestamp = Time::get_singleton()->get_datetime_string_from_unix_time(unix_time).replace_char(':', '.');
 			String backup_name = base_path.get_basename() + timestamp;
 			if (!base_path.get_extension().is_empty()) {
 				backup_name += "." + base_path.get_extension();

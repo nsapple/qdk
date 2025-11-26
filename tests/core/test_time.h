@@ -130,13 +130,29 @@ TEST_CASE("[Time] System time methods") {
 	const uint64_t ticks_msec = time->get_ticks_msec();
 	const uint64_t ticks_usec = time->get_ticks_usec();
 
-	CHECK_MESSAGE(time->get_unix_time_from_system() > 1000000000, "Time get_unix_time_from_system: The timestamp from system time doesn't fail and is very positive.");
-	CHECK_MESSAGE(time->get_unix_time_from_datetime_dict(time->get_datetime_dict_from_system()) > 1000000000, "Time get_datetime_string_from_system: The timestamp from system time doesn't fail and is very positive.");
-	CHECK_MESSAGE(time->get_unix_time_from_datetime_dict(time->get_date_dict_from_system()) > 1000000000, "Time get_datetime_string_from_system: The date from system time doesn't fail and is very positive.");
-	CHECK_MESSAGE(time->get_unix_time_from_datetime_dict(time->get_time_dict_from_system()) < 86400, "Time get_datetime_string_from_system: The time from system time doesn't fail and is within the acceptable range.");
-	CHECK_MESSAGE(time->get_unix_time_from_datetime_string(time->get_datetime_string_from_system()) > 1000000000, "Time get_datetime_string_from_system: The timestamp from system time doesn't fail and is very positive.");
-	CHECK_MESSAGE(time->get_unix_time_from_datetime_string(time->get_date_string_from_system()) > 1000000000, "Time get_datetime_string_from_system: The date from system time doesn't fail and is very positive.");
-	CHECK_MESSAGE(time->get_unix_time_from_datetime_string(time->get_time_string_from_system()) < 86400, "Time get_datetime_string_from_system: The time from system time doesn't fail and is within the acceptable range.");
+	// Get current unix time from OS and convert using Time methods
+	int64_t unix_time = OS::get_singleton()->get_unix_time();
+	CHECK_MESSAGE(unix_time > 1000000000, "OS get_unix_time: The timestamp from system time doesn't fail and is very positive.");
+
+	// Test datetime dict conversions
+	Dictionary datetime_dict = time->get_datetime_dict_from_unix_time(unix_time);
+	CHECK_MESSAGE(time->get_unix_time_from_datetime_dict(datetime_dict) > 1000000000, "Time datetime dict conversion: The timestamp from system time doesn't fail and is very positive.");
+
+	Dictionary date_dict = time->get_date_dict_from_unix_time(unix_time);
+	CHECK_MESSAGE(time->get_unix_time_from_datetime_dict(date_dict) > 1000000000, "Time date dict conversion: The date from system time doesn't fail and is very positive.");
+
+	Dictionary time_dict = time->get_time_dict_from_unix_time(unix_time);
+	CHECK_MESSAGE(time->get_unix_time_from_datetime_dict(time_dict) < 86400, "Time time dict conversion: The time from system time doesn't fail and is within the acceptable range.");
+
+	// Test datetime string conversions
+	String datetime_string = time->get_datetime_string_from_unix_time(unix_time);
+	CHECK_MESSAGE(time->get_unix_time_from_datetime_string(datetime_string) > 1000000000, "Time datetime string conversion: The timestamp from system time doesn't fail and is very positive.");
+
+	String date_string = time->get_date_string_from_unix_time(unix_time);
+	CHECK_MESSAGE(time->get_unix_time_from_datetime_string(date_string) > 1000000000, "Time date string conversion: The date from system time doesn't fail and is very positive.");
+
+	String time_string = time->get_time_string_from_unix_time(unix_time);
+	CHECK_MESSAGE(time->get_unix_time_from_datetime_string(time_string) < 86400, "Time time string conversion: The time from system time doesn't fail and is within the acceptable range.");
 
 	CHECK_MESSAGE(time->get_ticks_msec() >= ticks_msec, "Time get_ticks_msec: The value has not decreased.");
 	CHECK_MESSAGE(time->get_ticks_usec() > ticks_usec, "Time get_ticks_usec: The value has increased.");
