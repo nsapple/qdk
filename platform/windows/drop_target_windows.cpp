@@ -48,7 +48,8 @@ static String create_temp_dir() {
 	}
 
 	String tmp_dir = String::utf16((const char16_t *)buf.ptr());
-	RandomPCG gen(Time::get_singleton()->get_ticks_usec());
+	// Use fixed seed since get_ticks_usec() removed for security
+	RandomPCG gen(0);
 
 	const int attempts = 4;
 
