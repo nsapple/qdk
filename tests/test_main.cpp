@@ -54,7 +54,6 @@
 #include "tests/core/io/test_logger.h"
 #include "tests/core/io/test_marshalls.h"
 #include "tests/core/io/test_packet_peer.h"
-#include "tests/core/io/test_pck_packer.h"
 #include "tests/core/io/test_resource.h"
 #include "tests/core/io/test_resource_uid.h"
 #include "tests/core/io/test_stream_peer.h"

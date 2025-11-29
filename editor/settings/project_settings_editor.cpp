@@ -35,7 +35,6 @@
 #include "editor/editor_node.h"
 #include "editor/editor_string_names.h"
 #include "editor/editor_undo_redo_manager.h"
-#include "editor/export/editor_export.h"
 #include "editor/gui/editor_variant_type_selectors.h"
 #include "editor/inspector/editor_inspector.h"
 #include "editor/settings/editor_settings.h"
@@ -345,32 +344,7 @@ void ProjectSettingsEditor::_add_feature_overrides() {
 	presets.insert("64");
 	presets.insert("movie");
 
-	EditorExport *ee = EditorExport::get_singleton();
-
-	for (int i = 0; i < ee->get_export_platform_count(); i++) {
-		List<String> p;
-		ee->get_export_platform(i)->get_platform_features(&p);
-		for (const String &E : p) {
-			presets.insert(E);
-		}
-	}
-
-	for (int i = 0; i < ee->get_export_preset_count(); i++) {
-		List<String> p;
-		ee->get_export_preset(i)->get_platform()->get_preset_features(ee->get_export_preset(i), &p);
-		for (const String &E : p) {
-			presets.insert(E);
-		}
-
-		String custom = ee->get_export_preset(i)->get_custom_features();
-		Vector<String> custom_list = custom.split(",");
-		for (int j = 0; j < custom_list.size(); j++) {
-			String f = custom_list[j].strip_edges();
-			if (!f.is_empty()) {
-				presets.insert(f);
-			}
-		}
-	}
+	// Export functionality has been removed - only basic feature presets are available
 
 	feature_box->clear();
 	feature_box->add_item(TTRC("All"), FEATURE_ALL); // So it is always on top.

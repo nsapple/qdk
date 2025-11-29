@@ -55,7 +55,6 @@
 #include "core/io/packet_peer.h"
 #include "core/io/packet_peer_dtls.h"
 #include "core/io/packet_peer_udp.h"
-#include "core/io/pck_packer.h"
 #include "core/io/resource_format_binary.h"
 #include "core/io/resource_importer.h"
 #include "core/io/resource_uid.h"
@@ -268,8 +267,6 @@ void register_core_types() {
 	GDREGISTER_CLASS(JSON);
 
 	GDREGISTER_CLASS(ConfigFile);
-
-	GDREGISTER_CLASS(PCKPacker);
 
 	GDREGISTER_CLASS(AStar3D);
 	GDREGISTER_CLASS(AStar2D);

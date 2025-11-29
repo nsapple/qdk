@@ -41,7 +41,6 @@
 #include "core/input/input.h"
 #include "core/input/input_map.h"
 #include "core/io/dir_access.h"
-#include "core/io/file_access_pack.h"
 #include "core/io/file_access_zip.h"
 #include "core/io/image.h"
 #include "core/io/image_loader.h"
@@ -127,9 +126,6 @@
 #include "main/splash_editor.gen.h"
 #endif
 
-#ifndef DISABLE_DEPRECATED
-#include "editor/project_upgrade/project_converter_3_to_4.h"
-#endif // DISABLE_DEPRECATED
 #endif // TOOLS_ENABLED
 
 #if defined(STEAMAPI_ENABLED)
@@ -160,7 +156,6 @@ static Input *input = nullptr;
 static InputMap *input_map = nullptr;
 static TranslationServer *translation_server = nullptr;
 static Performance *performance = nullptr;
-static PackedData *packed_data = nullptr;
 #ifdef MINIZIP_ENABLED
 static ZipArchive *zip_packed_data = nullptr;
 #endif
@@ -737,8 +732,6 @@ Error Main::test_setup() {
 	register_core_types();
 	register_core_driver_types();
 
-	packed_data = memnew(PackedData);
-
 	globals = memnew(ProjectSettings);
 
 	register_core_settings(); // Here globals are present.
@@ -897,9 +890,6 @@ void Main::test_cleanup() {
 	EngineDebugger::deinitialize();
 	OS::get_singleton()->finalize();
 
-	if (packed_data) {
-		memdelete(packed_data);
-	}
 	if (translation_server) {
 		memdelete(translation_server);
 	}
@@ -1087,11 +1077,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	String default_renderer_mobile = "";
 	String renderer_hints = "";
 
-	packed_data = PackedData::get_singleton();
-	if (!packed_data) {
-		packed_data = memnew(PackedData);
-	}
-
 #ifdef MINIZIP_ENABLED
 
 	//XXX: always get_singleton() == 0x0
@@ -1101,7 +1086,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		zip_packed_data = memnew(ZipArchive);
 	}
 
-	packed_data->add_pack_source(zip_packed_data);
 #endif
 
 	// Exit error code used in the `goto error` conditions.
@@ -2219,12 +2203,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		}
 	});
 
-#ifdef TOOLS_ENABLED
-	if (editor) {
-		packed_data->set_disabled(true);
-	}
-#endif
-
 	GLOBAL_DEF("debug/file_logging/enable_file_logging", false);
 	// Only file logging by default on desktop platforms as logs can't be
 	// accessed easily on mobile/Web platforms (if at all).
@@ -2886,9 +2864,6 @@ error:
 	}
 	if (globals) {
 		memdelete(globals);
-	}
-	if (packed_data) {
-		memdelete(packed_data);
 	}
 
 	unregister_core_driver_types();
@@ -5166,9 +5141,6 @@ void Main::cleanup(bool p_force) {
 		memdelete(input);
 	}
 
-	if (packed_data) {
-		memdelete(packed_data);
-	}
 	if (performance) {
 		memdelete(performance);
 	}

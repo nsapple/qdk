@@ -32,11 +32,9 @@
 
 #ifdef MINIZIP_ENABLED
 
-#include "core/io/file_access_pack.h"
-
 #include "thirdparty/minizip/unzip.h"
 
-class ZipArchive : public PackSource {
+class ZipArchive {
 public:
 	struct File {
 		int package = -1;
@@ -61,8 +59,8 @@ public:
 
 	bool file_exists(const String &p_name) const;
 
-	virtual bool try_open_pack(const String &p_path, bool p_replace_files, uint64_t p_offset) override;
-	Ref<FileAccess> get_file(const String &p_path, PackedData::PackedFile *p_file) override;
+	bool try_open_pack(const String &p_path, bool p_replace_files, uint64_t p_offset);
+	Ref<FileAccess> get_file(const String &p_path);
 
 	static ZipArchive *get_singleton();
 
@@ -113,7 +111,7 @@ public:
 
 	virtual void close() override;
 
-	FileAccessZip(const String &p_path, const PackedData::PackedFile &p_file);
+	FileAccessZip(const String &p_path);
 	~FileAccessZip();
 };
 

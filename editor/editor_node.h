@@ -73,8 +73,6 @@ class EditorBuildProfileManager;
 class EditorBottomPanel;
 class EditorCommandPalette;
 class EditorDockManager;
-class EditorExport;
-class EditorExportPreset;
 class EditorFeatureProfileManager;
 class EditorFileDialog;
 class EditorFolding;
@@ -90,17 +88,14 @@ class EditorSceneTabs;
 class EditorSelectionHistory;
 class EditorSettingsDialog;
 class EditorTitleBar;
-class ExportTemplateManager;
 class EditorQuickOpenDialog;
 class FBXImporterManager;
 class FileSystemDock;
 class HistoryDock;
 class OrphanResourcesDialog;
 class ProgressDialog;
-class ProjectExportDialog;
 class ProjectSettingsEditor;
 class SceneImportSettingsDialog;
-class ProjectUpgradeTool;
 
 #ifdef ANDROID_ENABLED
 class TouchActionsPanel;
@@ -175,7 +170,6 @@ public:
 
 		TOOLS_ORPHAN_RESOURCES,
 		TOOLS_BUILD_PROFILE_MANAGER,
-		TOOLS_PROJECT_UPGRADE,
 		TOOLS_CUSTOM,
 
 		VCS_METADATA,
@@ -260,7 +254,6 @@ private:
 
 	EditorCommandPalette *command_palette = nullptr;
 	EditorQuickOpenDialog *quick_open_dialog = nullptr;
-	EditorExport *editor_export = nullptr;
 	EditorLog *log = nullptr;
 	EditorNativeShaderSourceVisualizer *native_shader_source_visualizer = nullptr;
 	EditorPluginList *editor_plugins_force_input_forwarding = nullptr;
@@ -398,11 +391,9 @@ private:
 	ConfirmationDialog *remove_android_build_template = nullptr;
 	Label *install_android_build_template_message = nullptr;
 	OptionButton *choose_android_export_profile = nullptr;
-	Ref<EditorExportPreset> android_export_preset;
 
 	PopupMenu *vcs_actions_menu = nullptr;
 	EditorFileDialog *file = nullptr;
-	ExportTemplateManager *export_template_manager = nullptr;
 	EditorFeatureProfileManager *feature_profile_manager = nullptr;
 	EditorBuildProfileManager *build_profile_manager = nullptr;
 	EditorFileDialog *file_templates = nullptr;
@@ -489,8 +480,6 @@ private:
 	HashMap<String, Ref<Texture2D>> icon_type_cache;
 	HashMap<Pair<String, String>, Ref<Texture2D>> class_icon_cache;
 
-	ProjectUpgradeTool *project_upgrade_tool = nullptr;
-	bool run_project_upgrade_tool = false;
 
 	bool was_window_windowed_last = false;
 
@@ -548,7 +537,6 @@ private:
 	void _menu_option_confirm(int p_option, bool p_confirmed);
 
 	void _android_build_source_selected(const String &p_file);
-	void _android_export_preset_selected(int p_index);
 	void _android_install_build_template();
 	void _android_explore_build_templates();
 
@@ -712,8 +700,6 @@ private:
 
 	void _progress_dialog_visibility_changed();
 	void _load_error_dialog_visibility_changed();
-
-	void _execute_upgrades();
 
 	bool _is_project_data_missing();
 

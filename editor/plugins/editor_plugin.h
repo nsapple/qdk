@@ -41,7 +41,6 @@ class Button;
 class PopupMenu;
 class EditorDebuggerPlugin;
 class EditorDock;
-class EditorExport;
 class EditorExportPlugin;
 class EditorExportPlatform;
 class EditorImportPlugin;
