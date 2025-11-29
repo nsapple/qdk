@@ -31,7 +31,6 @@
 #include "editor_file_server.h"
 
 #include "editor/editor_node.h"
-#include "editor/export/editor_export_platform.h"
 #include "editor/settings/editor_settings.h"
 
 #define FILESYSTEM_PROTOCOL_VERSION 1
@@ -199,11 +198,6 @@ void EditorFileServer::poll() {
 	HashMap<String, uint64_t> files_to_send;
 	// Scan files to send.
 	_scan_files_changed(EditorFileSystem::get_singleton()->get_filesystem(), tags, files_to_send, cached_files);
-	// Add forced export files
-	Vector<String> forced_export = EditorExportPlatform::get_forced_export_files(Ref<EditorExportPreset>());
-	for (int i = 0; i < forced_export.size(); i++) {
-		_add_custom_file(forced_export[i], files_to_send, cached_files);
-	}
 
 	_add_custom_file("res://project.godot", files_to_send, cached_files);
 	// Check which files were removed and also add them

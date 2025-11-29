@@ -35,7 +35,6 @@
 #include "core/io/config_file.h"
 #include "core/io/dir_access.h"
 #include "core/io/file_access.h"
-#include "core/io/file_access_pack.h"
 #include "core/io/marshalls.h"
 #include "core/io/resource_uid.h"
 #include "core/object/script_language.h"
@@ -566,44 +565,8 @@ bool ProjectSettings::load_resource_pack(const String &p_pack, bool p_replace_fi
 }
 
 bool ProjectSettings::_load_resource_pack(const String &p_pack, bool p_replace_files, int p_offset, bool p_main_pack) {
-	if (PackedData::get_singleton()->is_disabled()) {
-		return false;
-	}
-
-	if (p_pack == "res://") {
-		// Loading the resource directory as a pack source is reserved for internal use only.
-		return false;
-	}
-
-	if (!p_main_pack && !using_datapack && !OS::get_singleton()->get_resource_dir().is_empty()) {
-		// Add the project's resource file system to PackedData so directory access keeps working when
-		// the game is running without a main pack, like in the editor or on Android.
-		PackedData::get_singleton()->add_pack_source(memnew(PackedSourceDirectory));
-		PackedData::get_singleton()->add_pack("res://", false, 0);
-		DirAccess::make_default<DirAccessPack>(DirAccess::ACCESS_RESOURCES);
-		using_datapack = true;
-	}
-
-	bool ok = PackedData::get_singleton()->add_pack(p_pack, p_replace_files, p_offset) == OK;
-	if (!ok) {
-		return false;
-	}
-
-	if (project_loaded) {
-		// This pack may have declared new global classes (make sure they are picked up).
-		refresh_global_class_list();
-
-		// This pack may have defined new UIDs, make sure they are cached.
-		ResourceUID::get_singleton()->load_from_cache(false);
-	}
-
-	// If the data pack was found, all directory access will be from here.
-	if (!using_datapack) {
-		DirAccess::make_default<DirAccessPack>(DirAccess::ACCESS_RESOURCES);
-		using_datapack = true;
-	}
-
-	return true;
+	// PackedData support has been removed.
+	return false;
 }
 
 void ProjectSettings::_convert_to_last_version(int p_from_version) {

@@ -191,10 +191,6 @@ bool ZipArchive::try_open_pack(const String &p_path, bool p_replace_files, uint6
 		String fname = String("res://") + String::utf8(filename_inzip);
 		files[fname] = f;
 
-		uint8_t md5[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-		PackedData::get_singleton()->add_path(p_path, fname, 1, 0, md5, this, p_replace_files, false);
-		//printf("packed data add path %s, %s\n", p_name.utf8().get_data(), fname.utf8().get_data());
-
 		if ((i + 1) < gi.number_entry) {
 			unzGoToNextFile(zfile);
 		}
@@ -209,8 +205,8 @@ bool ZipArchive::file_exists(const String &p_name) const {
 	return files.has(p_name);
 }
 
-Ref<FileAccess> ZipArchive::get_file(const String &p_path, PackedData::PackedFile *p_file) {
-	return memnew(FileAccessZip(p_path, *p_file));
+Ref<FileAccess> ZipArchive::get_file(const String &p_path) {
+	return memnew(FileAccessZip(p_path));
 }
 
 ZipArchive *ZipArchive::get_singleton() {
@@ -329,7 +325,7 @@ void FileAccessZip::close() {
 	_close();
 }
 
-FileAccessZip::FileAccessZip(const String &p_path, const PackedData::PackedFile &p_file) {
+FileAccessZip::FileAccessZip(const String &p_path) {
 	open_internal(p_path, FileAccess::READ);
 }
 

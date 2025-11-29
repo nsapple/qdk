@@ -40,8 +40,6 @@
 #include "editor/editor_interface.h"
 #include "editor/editor_node.h"
 #include "editor/editor_undo_redo_manager.h"
-#include "editor/export/editor_export.h"
-#include "editor/export/editor_export_platform.h"
 #include "editor/file_system/editor_file_system.h"
 #include "editor/gui/editor_bottom_panel.h"
 #include "editor/gui/editor_title_bar.h"
@@ -455,22 +453,22 @@ void EditorPlugin::remove_import_plugin(const Ref<EditorImportPlugin> &p_importe
 
 void EditorPlugin::add_export_plugin(const Ref<EditorExportPlugin> &p_exporter) {
 	ERR_FAIL_COND(p_exporter.is_null());
-	EditorExport::get_singleton()->add_export_plugin(p_exporter);
+	// Export functionality has been removed
 }
 
 void EditorPlugin::remove_export_plugin(const Ref<EditorExportPlugin> &p_exporter) {
 	ERR_FAIL_COND(p_exporter.is_null());
-	EditorExport::get_singleton()->remove_export_plugin(p_exporter);
+	// Export functionality has been removed
 }
 
 void EditorPlugin::add_export_platform(const Ref<EditorExportPlatform> &p_platform) {
 	ERR_FAIL_COND(p_platform.is_null());
-	EditorExport::get_singleton()->add_export_platform(p_platform);
+	// Export functionality has been removed
 }
 
 void EditorPlugin::remove_export_platform(const Ref<EditorExportPlatform> &p_platform) {
 	ERR_FAIL_COND(p_platform.is_null());
-	EditorExport::get_singleton()->remove_export_platform(p_platform);
+	// Export functionality has been removed
 }
 
 void EditorPlugin::add_node_3d_gizmo_plugin(const Ref<EditorNode3DGizmoPlugin> &p_gizmo_plugin) {

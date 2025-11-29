@@ -95,14 +95,6 @@
 #include "editor/editor_log.h"
 #include "editor/editor_main_screen.h"
 #include "editor/editor_undo_redo_manager.h"
-#include "editor/export/dedicated_server_export_plugin.h"
-#include "editor/export/editor_export.h"
-#include "editor/export/export_template_manager.h"
-#include "editor/export/gdextension_export_plugin.h"
-#include "editor/export/project_export.h"
-#include "editor/export/project_zip_packer.h"
-#include "editor/export/register_exporters.h"
-#include "editor/export/shader_baker_export_plugin.h"
 #include "editor/file_system/dependency_editor.h"
 #include "editor/file_system/editor_paths.h"
 #include "editor/gui/editor_about.h"
@@ -142,8 +134,6 @@
 #include "editor/plugins/editor_plugin.h"
 #include "editor/plugins/editor_resource_conversion_plugin.h"
 #include "editor/plugins/plugin_config_dialog.h"
-#include "editor/project_upgrade/project_upgrade_tool.h"
-#include "editor/run/editor_run.h"
 #include "editor/run/editor_run_bar.h"
 #include "editor/run/game_view_plugin.h"
 #include "editor/scene/3d/material_3d_conversion_plugins.h"
@@ -1130,15 +1120,6 @@ void EditorNode::_update_update_spinner() {
 	OS::get_singleton()->set_low_processor_usage_mode(!update_continuously);
 }
 
-void EditorNode::_execute_upgrades() {
-	if (run_project_upgrade_tool) {
-		run_project_upgrade_tool = false;
-		// Execute another scan to reimport the modified files.
-		project_upgrade_tool->connect(project_upgrade_tool->UPGRADE_FINISHED, callable_mp(EditorFileSystem::get_singleton(), &EditorFileSystem::scan), CONNECT_ONE_SHOT);
-		project_upgrade_tool->finish_upgrade();
-	}
-}
-
 void EditorNode::init_plugins() {
 	_initializing_plugins = true;
 	Vector<String> addons;
@@ -1243,99 +1224,8 @@ void EditorNode::_fs_changed() {
 
 	_mark_unsaved_scenes();
 
-	// FIXME: Move this to a cleaner location, it's hacky to do this in _fs_changed.
-	String export_error;
-	Error err = OK;
-	// It's important to wait for the first scan to finish; otherwise, scripts or resources might not be imported.
-	if (!export_defer.preset.is_empty() && !EditorFileSystem::get_singleton()->is_scanning()) {
-		String preset_name = export_defer.preset;
-		// Ensures export_project does not loop infinitely, because notifications may
-		// come during the export.
-		export_defer.preset = "";
-		Ref<EditorExportPreset> export_preset;
-		for (int i = 0; i < EditorExport::get_singleton()->get_export_preset_count(); ++i) {
-			export_preset = EditorExport::get_singleton()->get_export_preset(i);
-			if (export_preset->get_name() == preset_name) {
-				break;
-			}
-			export_preset.unref();
-		}
-
-		if (export_preset.is_null()) {
-			Ref<DirAccess> da = DirAccess::create(DirAccess::ACCESS_RESOURCES);
-			if (da->file_exists("res://export_presets.cfg")) {
-				err = FAILED;
-				export_error = vformat(
-						"Invalid export preset name: %s.\nThe following presets were detected in this project's `export_presets.cfg`:\n\n",
-						preset_name);
-				for (int i = 0; i < EditorExport::get_singleton()->get_export_preset_count(); ++i) {
-					// Write the preset name between double quotes since it needs to be written between quotes on the command line if it contains spaces.
-					export_error += vformat("        \"%s\"\n", EditorExport::get_singleton()->get_export_preset(i)->get_name());
-				}
-			} else {
-				err = FAILED;
-				export_error = "This project doesn't have an `export_presets.cfg` file at its root.\nCreate an export preset from the \"Project > Export\" dialog and try again.";
-			}
-		} else {
-			Ref<EditorExportPlatform> platform = export_preset->get_platform();
-			const String export_path = export_defer.path.is_empty() ? export_preset->get_export_path() : export_defer.path;
-			if (export_path.is_empty()) {
-				err = FAILED;
-				export_error = vformat("Export preset \"%s\" doesn't have a default export path, and none was specified.", preset_name);
-			} else if (platform.is_null()) {
-				err = FAILED;
-				export_error = vformat("Export preset \"%s\" doesn't have a matching platform.", preset_name);
-			} else {
-				export_preset->update_value_overrides();
-				if (export_defer.pack_only) { // Only export .pck or .zip data pack.
-					if (export_path.ends_with(".zip")) {
-						if (export_defer.patch) {
-							err = platform->export_zip_patch(export_preset, export_defer.debug, export_path, export_defer.patches);
-						} else {
-							err = platform->export_zip(export_preset, export_defer.debug, export_path);
-						}
-					} else if (export_path.ends_with(".pck")) {
-						if (export_defer.patch) {
-							err = platform->export_pack_patch(export_preset, export_defer.debug, export_path, export_defer.patches);
-						} else {
-							err = platform->export_pack(export_preset, export_defer.debug, export_path);
-						}
-					} else {
-						ERR_PRINT(vformat("Export path \"%s\" doesn't end with a supported extension.", export_path));
-						err = FAILED;
-					}
-				} else { // Normal project export.
-					String config_error;
-					bool missing_templates;
-					if (export_defer.android_build_template) {
-						export_template_manager->install_android_template(export_preset);
-					}
-					if (!platform->can_export(export_preset, config_error, missing_templates, export_defer.debug)) {
-						ERR_PRINT(vformat("Cannot export project with preset \"%s\" due to configuration errors:\n%s", preset_name, config_error));
-						err = missing_templates ? ERR_FILE_NOT_FOUND : ERR_UNCONFIGURED;
-					} else {
-						platform->clear_messages();
-						err = platform->export_project(export_preset, export_defer.debug, export_path);
-					}
-				}
-				if (err != OK) {
-					export_error = vformat("Project export for preset \"%s\" failed.", preset_name);
-				} else if (platform->get_worst_message_type() >= EditorExportPlatform::EXPORT_MESSAGE_WARNING) {
-					export_error = vformat("Project export for preset \"%s\" completed with warnings.", preset_name);
-				}
-			}
-		}
-
-		if (err != OK) {
-			ERR_PRINT(export_error);
-			_exit_editor(EXIT_FAILURE);
-			return;
-		}
-		if (!export_error.is_empty()) {
-			WARN_PRINT(export_error);
-		}
-		_exit_editor(EXIT_SUCCESS);
-	}
+	// Export system has been removed
+	// TODO: Implement new export mechanism if needed
 }
 
 void EditorNode::_resources_reimporting(const Vector<String> &p_resources) {
@@ -3195,17 +3085,11 @@ void EditorNode::_edit_current(bool p_skip_foreign, bool p_skip_inspector_update
 }
 
 void EditorNode::_android_build_source_selected(const String &p_file) {
-	export_template_manager->install_android_template_from_file(p_file, android_export_preset);
+	// Export template manager has been removed
+	// TODO: Implement Android build template installation if needed
 }
 
-void EditorNode::_android_export_preset_selected(int p_index) {
-	if (p_index >= 0) {
-		android_export_preset = EditorExport::get_singleton()->get_export_preset(choose_android_export_profile->get_item_id(p_index));
-	} else {
-		android_export_preset.unref();
-	}
-	install_android_build_template_message->set_text(vformat(TTR(INSTALL_ANDROID_BUILD_TEMPLATE_MESSAGE), export_template_manager->get_android_build_directory(android_export_preset)));
-}
+// Method removed - export system has been deleted
 
 void EditorNode::_android_install_build_template() {
 	gradle_build_manage_templates->hide();
@@ -3213,7 +3097,9 @@ void EditorNode::_android_install_build_template() {
 }
 
 void EditorNode::_android_explore_build_templates() {
-	OS::get_singleton()->shell_show_in_file_manager(ProjectSettings::get_singleton()->globalize_path(export_template_manager->get_android_build_directory(android_export_preset).get_base_dir()), true);
+	// Export template manager has been removed
+	// Default Android build directory
+	OS::get_singleton()->shell_show_in_file_manager(ProjectSettings::get_singleton()->globalize_path("res://android"), true);
 }
 
 static String _get_unsaved_scene_dialog_text(String p_scene_filename, uint64_t p_started_timestamp) {
@@ -3408,7 +3294,7 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 		} break;
 
 		case PROJECT_EXPORT: {
-			project_export->popup_export();
+			// Project export dialog has been removed
 		} break;
 
 		case PROJECT_PACK_AS_ZIP: {
@@ -3520,46 +3406,25 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 		} break;
 
 		case PROJECT_INSTALL_ANDROID_SOURCE: {
+			// Export system has been removed - simplified Android build template handling
 			if (p_confirmed) {
-				if (export_template_manager->is_android_template_installed(android_export_preset)) {
-					remove_android_build_template->set_text(vformat(TTR(REMOVE_ANDROID_BUILD_TEMPLATE_MESSAGE), export_template_manager->get_android_build_directory(android_export_preset)));
+				// Check if Android build directory exists
+				Ref<DirAccess> da = DirAccess::create(DirAccess::ACCESS_RESOURCES);
+				if (da->dir_exists("res://android/build")) {
+					remove_android_build_template->set_text(vformat(TTR(REMOVE_ANDROID_BUILD_TEMPLATE_MESSAGE), "res://android/build"));
 					remove_android_build_template->popup_centered();
-				} else if (!export_template_manager->can_install_android_template(android_export_preset)) {
-					gradle_build_manage_templates->popup_centered();
 				} else {
-					export_template_manager->install_android_template(android_export_preset);
+					gradle_build_manage_templates->popup_centered();
 				}
 			} else {
-				bool has_custom_gradle_build = false;
-				choose_android_export_profile->clear();
-				for (int i = 0; i < EditorExport::get_singleton()->get_export_preset_count(); i++) {
-					Ref<EditorExportPreset> export_preset = EditorExport::get_singleton()->get_export_preset(i);
-					if (export_preset->get_platform()->get_class_name() == "EditorExportPlatformAndroid" && (bool)export_preset->get("gradle_build/use_gradle_build")) {
-						choose_android_export_profile->add_item(export_preset->get_name(), i);
-						String gradle_build_directory = export_preset->get("gradle_build/gradle_build_directory");
-						String android_source_template = export_preset->get("gradle_build/android_source_template");
-						if (!android_source_template.is_empty() || (gradle_build_directory != "" && gradle_build_directory != "res://android")) {
-							has_custom_gradle_build = true;
-						}
-					}
-				}
-				_android_export_preset_selected(choose_android_export_profile->get_item_count() >= 1 ? 0 : -1);
-
-				if (choose_android_export_profile->get_item_count() > 1 && has_custom_gradle_build) {
-					// If there's multiple options and at least one of them uses a custom gradle build then prompt the user to choose.
-					choose_android_export_profile->show();
-					install_android_build_template->popup_centered();
+				choose_android_export_profile->hide();
+				// Check if Android build directory exists
+				Ref<DirAccess> da = DirAccess::create(DirAccess::ACCESS_RESOURCES);
+				if (da->dir_exists("res://android/build")) {
+					remove_android_build_template->set_text(vformat(TTR(REMOVE_ANDROID_BUILD_TEMPLATE_MESSAGE), "res://android/build"));
+					remove_android_build_template->popup_centered();
 				} else {
-					choose_android_export_profile->hide();
-
-					if (export_template_manager->is_android_template_installed(android_export_preset)) {
-						remove_android_build_template->set_text(vformat(TTR(REMOVE_ANDROID_BUILD_TEMPLATE_MESSAGE), export_template_manager->get_android_build_directory(android_export_preset)));
-						remove_android_build_template->popup_centered();
-					} else if (export_template_manager->can_install_android_template(android_export_preset)) {
-						install_android_build_template->popup_centered();
-					} else {
-						gradle_build_manage_templates->popup_centered();
-					}
+					install_android_build_template->popup_centered();
 				}
 			}
 		} break;
@@ -3692,7 +3557,7 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 			OS::get_singleton()->shell_show_in_file_manager(EditorPaths::get_singleton()->get_config_dir(), true);
 		} break;
 		case EDITOR_MANAGE_EXPORT_TEMPLATES: {
-			export_template_manager->popup_manager();
+			// Export template manager has been removed
 		} break;
 		case EDITOR_CONFIGURE_FBX_IMPORTER: {
 #if !defined(ANDROID_ENABLED) && !defined(WEB_ENABLED)
@@ -3825,9 +3690,8 @@ void EditorNode::_screenshot(bool p_use_utc) {
 	String name = "editor_screenshot_" + Time::get_singleton()->get_datetime_string_from_unix_time(unix_time).remove_char(':') + ".png";
 	String path = String("user://") + name;
 
-	if (!EditorRun::request_screenshot(callable_mp(this, &EditorNode::_save_screenshot_with_embedded_process).bind(path))) {
-		_save_screenshot(path);
-	}
+	// EditorRun has been removed - directly save screenshot without embedded process overlay
+	_save_screenshot(path);
 }
 
 void EditorNode::_save_screenshot_with_embedded_process(int64_t p_w, int64_t p_h, const String &p_emb_path, const Rect2i &p_rect, const String &p_path) {
@@ -3922,7 +3786,7 @@ void EditorNode::_tool_menu_option(int p_idx) {
 			build_profile_manager->popup_centered_clamped(Size2(700, 800) * EDSCALE, 0.8);
 		} break;
 		case TOOLS_PROJECT_UPGRADE: {
-			project_upgrade_tool->popup_dialog();
+			// Project upgrade tool has been removed
 		} break;
 		case TOOLS_CUSTOM: {
 			if (tool_menu->get_item_submenu(p_idx) == "") {
@@ -5962,19 +5826,14 @@ void EditorNode::_begin_first_scan() {
 }
 
 Error EditorNode::export_preset(const String &p_preset, const String &p_path, bool p_debug, bool p_pack_only, bool p_android_build_template, bool p_patch, const Vector<String> &p_patches) {
-	export_defer.preset = p_preset;
-	export_defer.path = p_path;
-	export_defer.debug = p_debug;
-	export_defer.pack_only = p_pack_only;
-	export_defer.android_build_template = p_android_build_template;
-	export_defer.patch = p_patch;
-	export_defer.patches = p_patches;
-	cmdline_mode = true;
-	return OK;
+	// Export system has been removed
+	ERR_PRINT("Export functionality has been removed from this build.");
+	return ERR_UNAVAILABLE;
 }
 
 bool EditorNode::is_project_exporting() const {
-	return project_export && project_export->is_exporting();
+	// Export system has been removed
+	return false;
 }
 
 void EditorNode::show_accept(const String &p_text, const String &p_title) {
@@ -7429,7 +7288,7 @@ bool EditorNode::is_editor_dimmed() const {
 }
 
 void EditorNode::open_export_template_manager() {
-	export_template_manager->popup_manager();
+	// Export template manager has been removed
 }
 
 void EditorNode::add_resource_conversion_plugin(const Ref<EditorResourceConversionPlugin> &p_plugin) {
@@ -7957,12 +7816,7 @@ EditorNode::EditorNode() {
 
 	_update_vsync_mode();
 
-	// Warm up the project upgrade tool as early as possible.
-	project_upgrade_tool = memnew(ProjectUpgradeTool);
-	run_project_upgrade_tool = EditorSettings::get_singleton()->get_project_metadata(project_upgrade_tool->META_PROJECT_UPGRADE_TOOL, project_upgrade_tool->META_RUN_ON_RESTART, false);
-	if (run_project_upgrade_tool) {
-		project_upgrade_tool->begin_upgrade();
-	}
+	// Project upgrade tool has been removed
 
 	{
 		bool agile_input_event_flushing = EDITOR_GET("input/buffering/agile_event_flushing");
@@ -8162,17 +8016,11 @@ EditorNode::EditorNode() {
 	EditorFileDialog::register_func = _editor_file_dialog_register;
 	EditorFileDialog::unregister_func = _editor_file_dialog_unregister;
 
-	editor_export = memnew(EditorExport);
-	add_child(editor_export);
+	// Export system has been removed
 
-	// Exporters might need the theme.
 	EditorThemeManager::initialize();
 	theme = EditorThemeManager::generate_theme();
 	DisplayServer::set_early_window_clear_color_override(true, theme->get_color(SNAME("background"), EditorStringName(Editor)));
-
-	EDITOR_DEF("_export_preset_advanced_mode", false); // Could be accessed in EditorExportPreset.
-
-	register_exporters();
 
 	ED_SHORTCUT("canvas_item_editor/pan_view", TTRC("Pan View"), Key::SPACE);
 
@@ -8396,8 +8244,7 @@ EditorNode::EditorNode() {
 	save_accept->set_unparent_when_invisible(true);
 	save_accept->connect(SceneStringName(confirmed), callable_mp(this, &EditorNode::_menu_option).bind((int)MenuOptions::SCENE_SAVE_AS_SCENE));
 
-	project_export = memnew(ProjectExportDialog);
-	gui_base->add_child(project_export);
+	// Project export dialog has been removed
 
 	dependency_error = memnew(DependencyErrorDialog);
 	gui_base->add_child(dependency_error);
@@ -8418,8 +8265,7 @@ EditorNode::EditorNode() {
 	fontdata_import_settings = memnew(DynamicFontImportSettingsDialog);
 	gui_base->add_child(fontdata_import_settings);
 
-	export_template_manager = memnew(ExportTemplateManager);
-	gui_base->add_child(export_template_manager);
+	// Export template manager has been removed
 
 	feature_profile_manager = memnew(EditorFeatureProfileManager);
 	gui_base->add_child(feature_profile_manager);
@@ -8534,7 +8380,7 @@ EditorNode::EditorNode() {
 	project_menu->add_submenu_node_item(TTRC("Tools"), tool_menu);
 	tool_menu->add_shortcut(ED_SHORTCUT_AND_COMMAND("editor/orphan_resource_explorer", TTRC("Orphan Resource Explorer...")), TOOLS_ORPHAN_RESOURCES);
 	tool_menu->add_shortcut(ED_SHORTCUT_AND_COMMAND("editor/engine_compilation_configuration_editor", TTRC("Engine Compilation Configuration Editor...")), TOOLS_BUILD_PROFILE_MANAGER);
-	tool_menu->add_shortcut(ED_SHORTCUT_AND_COMMAND("editor/upgrade_project", TTRC("Upgrade Project Files...")), TOOLS_PROJECT_UPGRADE);
+	// Project upgrade tool has been removed
 
 	project_menu->add_separator();
 	project_menu->add_shortcut(ED_SHORTCUT("editor/reload_current_project", TTRC("Reload Current Project")), PROJECT_RELOAD_CURRENT_PROJECT);
@@ -8841,7 +8687,7 @@ EditorNode::EditorNode() {
 		vbox->add_child(install_android_build_template_message);
 
 		choose_android_export_profile = memnew(OptionButton);
-		choose_android_export_profile->connect(SceneStringName(item_selected), callable_mp(this, &EditorNode::_android_export_preset_selected));
+		// Connection to _android_export_preset_selected removed - export system has been deleted
 		vbox->add_child(choose_android_export_profile);
 
 		install_android_build_template = memnew(ConfirmationDialog);
@@ -9042,38 +8888,7 @@ EditorNode::EditorNode() {
 	editor_plugins_force_over = memnew(EditorPluginList);
 	editor_plugins_force_input_forwarding = memnew(EditorPluginList);
 
-	Ref<GDExtensionExportPlugin> gdextension_export_plugin;
-	gdextension_export_plugin.instantiate();
-
-	EditorExport::get_singleton()->add_export_plugin(gdextension_export_plugin);
-
-	Ref<DedicatedServerExportPlugin> dedicated_server_export_plugin;
-	dedicated_server_export_plugin.instantiate();
-
-	EditorExport::get_singleton()->add_export_plugin(dedicated_server_export_plugin);
-
-	Ref<ShaderBakerExportPlugin> shader_baker_export_plugin;
-	shader_baker_export_plugin.instantiate();
-
-#ifdef VULKAN_ENABLED
-	Ref<ShaderBakerExportPluginPlatformVulkan> shader_baker_export_plugin_platform_vulkan;
-	shader_baker_export_plugin_platform_vulkan.instantiate();
-	shader_baker_export_plugin->add_platform(shader_baker_export_plugin_platform_vulkan);
-#endif
-
-#ifdef D3D12_ENABLED
-	Ref<ShaderBakerExportPluginPlatformD3D12> shader_baker_export_plugin_platform_d3d12;
-	shader_baker_export_plugin_platform_d3d12.instantiate();
-	shader_baker_export_plugin->add_platform(shader_baker_export_plugin_platform_d3d12);
-#endif
-
-#ifdef METAL_ENABLED
-	Ref<ShaderBakerExportPluginPlatformMetal> shader_baker_export_plugin_platform_metal;
-	shader_baker_export_plugin_platform_metal.instantiate();
-	shader_baker_export_plugin->add_platform(shader_baker_export_plugin_platform_metal);
-#endif
-
-	EditorExport::get_singleton()->add_export_plugin(shader_baker_export_plugin);
+	// Export plugins have been removed - export system has been deleted
 
 	Ref<PackedSceneEditorTranslationParserPlugin> packed_scene_translation_parser_plugin;
 	packed_scene_translation_parser_plugin.instantiate();
@@ -9227,7 +9042,7 @@ EditorNode::~EditorNode() {
 	memdelete(editor_plugins_force_over);
 	memdelete(editor_plugins_force_input_forwarding);
 	memdelete(progress_hb);
-	memdelete(project_upgrade_tool);
+	// project_upgrade_tool has been removed
 	memdelete(editor_dock_manager);
 
 	EditorSettings::destroy();
