@@ -4143,14 +4143,15 @@ int Main::start() {
 		}
 	}
 
+// Project converter has been removed along with the export system
 #ifndef DISABLE_DEPRECATED
 	if (converting_project) {
-		int ret = ProjectConverter3To4(converter_max_kb_file, converter_max_line_length).convert();
-		return ret ? EXIT_SUCCESS : EXIT_FAILURE;
+		ERR_PRINT("Project conversion functionality has been removed from this build.");
+		return EXIT_FAILURE;
 	}
 	if (validating_converting_project) {
-		bool ret = ProjectConverter3To4(converter_max_kb_file, converter_max_line_length).validate_conversion();
-		return ret ? EXIT_SUCCESS : EXIT_FAILURE;
+		ERR_PRINT("Project conversion validation has been removed from this build.");
+		return EXIT_FAILURE;
 	}
 #endif // DISABLE_DEPRECATED
 

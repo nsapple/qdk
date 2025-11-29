@@ -44,10 +44,11 @@
 #include "core/templates/hash_map.h"
 #include "scene/main/node.h"
 
-#if defined(TOOLS_ENABLED) && !defined(DISABLE_DEPRECATED)
-#define SUGGEST_GODOT4_RENAMES
-#include "editor/project_upgrade/renames_map_3_to_4.h"
-#endif
+// Project upgrade functionality has been removed along with the export system
+//#if defined(TOOLS_ENABLED) && !defined(DISABLE_DEPRECATED)
+//#define SUGGEST_GODOT4_RENAMES
+//#include "editor/project_upgrade/renames_map_3_to_4.h"
+//#endif
 
 #define UNNAMED_ENUM "<anonymous enum>"
 #define ENUM_SEPARATOR "."
