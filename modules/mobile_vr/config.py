@@ -1,5 +1,7 @@
 def can_build(env, platform):
-    return not env["disable_xr"]
+    # VR is not required for this fork, so the mobile VR module stays disabled on all
+    # platforms to avoid pulling in unused dependencies or editor integration.
+    return False
 
 
 def configure(env):

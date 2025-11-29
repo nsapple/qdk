@@ -1,9 +1,7 @@
 def can_build(env, platform):
-    if platform in ("linuxbsd", "windows", "android", "macos"):
-        return not env["disable_xr"]
-    else:
-        # Not supported on these platforms.
-        return False
+    # VR is not required for this fork, so the OpenXR module stays disabled on all
+    # platforms to avoid pulling in unused dependencies or editor integration.
+    return False
 
 
 def configure(env):
