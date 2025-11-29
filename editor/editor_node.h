@@ -265,7 +265,6 @@ private:
 	EditorSettingsDialog *editor_settings_dialog = nullptr;
 	HistoryDock *history_dock = nullptr;
 
-	ProjectExportDialog *project_export = nullptr;
 	ProjectSettingsEditor *project_settings_editor = nullptr;
 
 	FBXImporterManager *fbx_importer_manager = nullptr;
