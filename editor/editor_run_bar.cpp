@@ -28,7 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "editor_run_bar.h"
+#include "run/editor_run_bar.h"
 
 #include "core/config/project_settings.h"
 #include "core/io/resource_uid.h"
