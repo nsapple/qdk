@@ -8,7 +8,7 @@
 #include "core/io/json.h"
 #include "core/os/os.h"
 #include "editor/editor_data.h"
-#include "editor/editor_file_dialog.h"
+#include "editor/gui/editor_file_dialog.h"
 #include "editor/editor_node.h"
 #include "editor/editor_paths.h"
 #include "scene/gui/box_container.h"
