@@ -10,7 +10,7 @@
 #include "editor/editor_data.h"
 #include "editor/gui/editor_file_dialog.h"
 #include "editor/editor_node.h"
-#include "editor/editor_paths.h"
+#include "editor/file_system/editor_paths.h"
 #include "scene/gui/box_container.h"
 #include "scene/gui/button.h"
 #include "scene/gui/label.h"

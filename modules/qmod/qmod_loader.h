@@ -37,7 +37,7 @@ class QModLoader : public RefCounted {
 	GDCLASS(QModLoader, RefCounted);
 
 protected:
-	static void _bind_methods();
+        static void _bind_methods();
 
 public:
 	struct ModInfo {
@@ -53,11 +53,16 @@ public:
 	Error uninstall_qmod(const String &p_mod_name);
 	Array get_installed_mods();
 	Dictionary get_mod_info(const String &p_mod_name);
-	Error load_mod_scene(const String &p_mod_name);
+        Error load_mod_scene(const String &p_mod_name);
 
-	static String get_mods_directory();
+        static String get_mods_directory();
 
-	QModLoader();
+        QModLoader();
+
+private:
+        Error _copy_dir(const String &p_from, const String &p_to);
+        Error _copy_file(const String &p_from, const String &p_to);
+        Error _remove_dir_recursive(const String &p_dir);
 };
 
 #endif // QMOD_LOADER_H
