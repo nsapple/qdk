@@ -9,10 +9,21 @@ QMOD is a mod packaging and loading system for Godot Engine that allows you to c
 - **Metadata Support**: Include title, description, icon, and type information
 - **Two Mod Types**: Support for "level" and "character" mod types
 - **PCK-Based Format**: Uses Godot's PCK format for compatibility
+- **Dual Interface**: Use either the Editor UI plugin or programmatic API
+
+## Two Ways to Use QMOD
+
+### 1. Editor Plugin (GUI)
+
+The QMOD Editor Plugin provides a user-friendly interface in the Godot editor for exporting mods. Access it from the editor's menu system to fill in mod metadata and select files to export.
+
+### 2. Programmatic API (Script)
+
+Use the `QModExporter` and `QModLoader` classes in your scripts for runtime mod management and automated workflows.
 
 ## Usage
 
-### Exporting a Mod
+### Exporting a Mod (Programmatic)
 
 ```gdscript
 # Create an exporter
