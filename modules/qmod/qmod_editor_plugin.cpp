@@ -10,7 +10,8 @@
 #include "editor/editor_data.h"
 #include "editor/gui/editor_file_dialog.h"
 #include "editor/editor_node.h"
-#include "editor/editor_paths.h"
+#include "editor/editor_scale.h"
+#include "editor/file_system/editor_paths.h"
 #include "scene/gui/box_container.h"
 #include "scene/gui/button.h"
 #include "scene/gui/label.h"
@@ -68,12 +69,16 @@ void QModEditorPlugin::_dialog_file_selected(const String &p_path) {
 
 void QModEditorPlugin::_import_file_selected(const String &p_path) {
         String mods_dir = OS::get_singleton()->get_user_data_dir().path_join("mods");
-        DirAccess::create(mods_dir);
+        Ref<DirAccess> mods_dir_access = DirAccess::create_for_path(mods_dir);
+        if (mods_dir_access.is_valid()) {
+                mods_dir_access->make_dir_recursive(mods_dir);
+        }
 
         String target_dir = mods_dir.path_join(p_path.get_file());
         Ref<DirAccess> dir = DirAccess::create_for_path(target_dir);
         if (dir.is_valid() && dir->dir_exists(target_dir)) {
-                dir->remove_recursive(target_dir);
+                dir->erase_contents_recursive();
+                DirAccess::remove_absolute(target_dir);
         }
         _copy_dir(p_path, target_dir);
 }
@@ -155,7 +160,10 @@ void QModEditorPlugin::_confirm_export() {
 
         if (output_path.is_empty()) {
                 output_path = EditorPaths::get_singleton()->get_project_settings_dir().path_join("mods");
-                DirAccess::create(output_path);
+                Ref<DirAccess> output_dir_access = DirAccess::create_for_path(output_path);
+                if (output_dir_access.is_valid()) {
+                        output_dir_access->make_dir_recursive(output_path);
+                }
                 output_path = output_path.path_join(title.is_empty() ? String("new_mod") : title);
         }
 
@@ -245,12 +253,12 @@ void QModEditorPlugin::_notification(int p_what) {
 
                 file_dialog = memnew(EditorFileDialog);
                 file_dialog->set_file_mode(EditorFileDialog::FILE_MODE_OPEN_FILE);
-                file_dialog->connect(SceneStringName(file_selected), callable_mp(this, &QModEditorPlugin::_dialog_file_selected));
+                file_dialog->connect(SNAME("file_selected"), callable_mp(this, &QModEditorPlugin::_dialog_file_selected));
                 add_child(file_dialog);
 
                 import_dialog = memnew(EditorFileDialog);
                 import_dialog->set_file_mode(EditorFileDialog::FILE_MODE_OPEN_DIR);
-                import_dialog->connect(SceneStringName(file_selected), callable_mp(this, &QModEditorPlugin::_import_file_selected));
+                import_dialog->connect(SNAME("file_selected"), callable_mp(this, &QModEditorPlugin::_import_file_selected));
                 add_child(import_dialog);
 
                 add_tool_menu_item(TTR("Export QMod"), callable_mp(this, &QModEditorPlugin::_open_export_dialog));

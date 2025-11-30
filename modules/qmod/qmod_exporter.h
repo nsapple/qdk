@@ -44,10 +44,12 @@ public:
 	};
 
 private:
-	String title;
-	String description;
-	String icon_path;
-	ModType mod_type = MOD_TYPE_LEVEL;
+        String title;
+        String description;
+        String icon_path;
+        ModType mod_type = MOD_TYPE_LEVEL;
+
+        Error _copy_file(const String &p_from, const String &p_to);
 
 protected:
 	static void _bind_methods();
