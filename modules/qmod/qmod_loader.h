@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  register_types.h                                                      */
+/*  qmod_loader.h                                                         */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,12 +28,36 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef QMOD_REGISTER_TYPES_H
-#define QMOD_REGISTER_TYPES_H
+#ifndef QMOD_LOADER_H
+#define QMOD_LOADER_H
 
-#include "modules/register_module_types.h"
+#include "core/object/ref_counted.h"
 
-void initialize_qmod_module(ModuleInitializationLevel p_level);
-void uninitialize_qmod_module(ModuleInitializationLevel p_level);
+class QModLoader : public RefCounted {
+	GDCLASS(QModLoader, RefCounted);
 
-#endif // QMOD_REGISTER_TYPES_H
+protected:
+	static void _bind_methods();
+
+public:
+	struct ModInfo {
+		String title;
+		String description;
+		String icon_path;
+		String type;
+		String scene_path;
+		String mod_directory;
+	};
+
+	Error install_qmod(const String &p_qmod_path);
+	Error uninstall_qmod(const String &p_mod_name);
+	Array get_installed_mods();
+	Dictionary get_mod_info(const String &p_mod_name);
+	Error load_mod_scene(const String &p_mod_name);
+
+	static String get_mods_directory();
+
+	QModLoader();
+};
+
+#endif // QMOD_LOADER_H

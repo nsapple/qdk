@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  register_types.h                                                      */
+/*  qmod_exporter.h                                                       */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,12 +28,48 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef QMOD_REGISTER_TYPES_H
-#define QMOD_REGISTER_TYPES_H
+#ifndef QMOD_EXPORTER_H
+#define QMOD_EXPORTER_H
 
-#include "modules/register_module_types.h"
+#include "core/io/resource_saver.h"
+#include "core/object/ref_counted.h"
 
-void initialize_qmod_module(ModuleInitializationLevel p_level);
-void uninitialize_qmod_module(ModuleInitializationLevel p_level);
+class QModExporter : public RefCounted {
+	GDCLASS(QModExporter, RefCounted);
 
-#endif // QMOD_REGISTER_TYPES_H
+public:
+	enum ModType {
+		MOD_TYPE_LEVEL,
+		MOD_TYPE_CHARACTER,
+	};
+
+private:
+	String title;
+	String description;
+	String icon_path;
+	ModType mod_type = MOD_TYPE_LEVEL;
+
+protected:
+	static void _bind_methods();
+
+public:
+	void set_title(const String &p_title);
+	String get_title() const;
+
+	void set_description(const String &p_description);
+	String get_description() const;
+
+	void set_icon_path(const String &p_icon_path);
+	String get_icon_path() const;
+
+	void set_mod_type(ModType p_type);
+	ModType get_mod_type() const;
+
+	Error export_qmod(const String &p_scene_path, const String &p_output_path);
+
+	QModExporter();
+};
+
+VARIANT_ENUM_CAST(QModExporter::ModType);
+
+#endif // QMOD_EXPORTER_H
