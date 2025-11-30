@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  register_types.cpp                                                    */
+/*  qmod_editor_plugin.h                                                  */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,38 +28,56 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "register_types.h"
+#pragma once
 
-#include "core/object/class_db.h"
-#include "qmod_exporter.h"
-#include "qmod_loader.h"
-
-#ifdef TOOLS_ENABLED
 #include "editor/plugins/editor_plugin.h"
-#include "qmod_editor_plugin.h"
-#endif
-
-void initialize_qmod_module(ModuleInitializationLevel p_level) {
-	if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
-		GDREGISTER_CLASS(QModExporter);
-		GDREGISTER_CLASS(QModLoader);
-	}
 
 #ifdef TOOLS_ENABLED
-	if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
-		EditorPlugins::add_by_type<QModEditorPlugin>();
-	}
-#endif
-}
+class Button;
+class ConfirmationDialog;
+class EditorFileDialog;
+class LineEdit;
+class OptionButton;
+class TextEdit;
 
-void uninitialize_qmod_module(ModuleInitializationLevel p_level) {
-	if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
-		// Nothing to clean up for scene level.
-	}
+class QModEditorPlugin : public EditorPlugin {
+        GDCLASS(QModEditorPlugin, EditorPlugin);
 
-#ifdef TOOLS_ENABLED
-	if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
-		// Nothing to clean up for editor level.
-	}
+        ConfirmationDialog *export_dialog = nullptr;
+        EditorFileDialog *file_dialog = nullptr;
+        EditorFileDialog *import_dialog = nullptr;
+
+        LineEdit *title_edit = nullptr;
+        TextEdit *description_edit = nullptr;
+        LineEdit *icon_edit = nullptr;
+        LineEdit *scene_edit = nullptr;
+        LineEdit *output_edit = nullptr;
+        OptionButton *type_option = nullptr;
+
+        enum FileDialogPurpose {
+                FILE_DIALOG_ICON,
+                FILE_DIALOG_SCENE,
+                FILE_DIALOG_OUTPUT,
+        };
+
+        FileDialogPurpose pending_dialog = FILE_DIALOG_ICON;
+
+        void _open_export_dialog();
+        void _open_import_dialog();
+        void _open_icon_picker();
+        void _open_scene_picker();
+        void _open_output_picker();
+        void _dialog_file_selected(const String &p_path);
+        void _import_file_selected(const String &p_path);
+        void _confirm_export();
+        Error _copy_dir(const String &p_from, const String &p_to);
+        Error _copy_file(const String &p_from, const String &p_to);
+        Error _write_json(const String &p_path, const Dictionary &p_dict);
+        String _resolve_mod_folder(const String &p_target) const;
+
+public:
+        String get_plugin_name() const override { return "QModExporter"; }
+        bool has_main_screen() const override { return false; }
+        void _notification(int p_what);
+};
 #endif
-}

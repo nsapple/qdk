@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  register_types.cpp                                                    */
+/*  game_view_plugin.h                                                    */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,38 +28,46 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "register_types.h"
+#pragma once
 
-#include "core/object/class_db.h"
-#include "qmod_exporter.h"
-#include "qmod_loader.h"
+#include "editor/debugger/editor_debugger_node.h"
+#include "editor/editor_plugin.h"
 
-#ifdef TOOLS_ENABLED
-#include "editor/plugins/editor_plugin.h"
-#include "qmod_editor_plugin.h"
-#endif
+class GameViewDebugger : public RefCounted {
+        GDCLASS(GameViewDebugger, RefCounted);
 
-void initialize_qmod_module(ModuleInitializationLevel p_level) {
-	if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
-		GDREGISTER_CLASS(QModExporter);
-		GDREGISTER_CLASS(QModLoader);
-	}
+protected:
+        static void _bind_methods();
 
-#ifdef TOOLS_ENABLED
-	if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
-		EditorPlugins::add_by_type<QModEditorPlugin>();
-	}
-#endif
-}
+public:
+        void set_suspend(bool p_enabled);
+        void next_frame();
+        void set_node_type(const String &p_type);
+        void set_select_mode(int p_mode);
+        void set_selection_visible(bool p_visible);
+        void set_camera_override(bool p_enabled);
+        void set_camera_manipulate_mode(EditorDebuggerNode::CameraOverride p_mode);
+        void reset_camera_2d_position();
+        void reset_camera_3d_position();
+        void set_debug_mute_audio(bool p_enabled);
+        void reset_time_scale();
+        void set_time_scale(double p_scale);
+};
 
-void uninitialize_qmod_module(ModuleInitializationLevel p_level) {
-	if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
-		// Nothing to clean up for scene level.
-	}
+class GameViewPluginBase : public EditorPlugin {
+        GDCLASS(GameViewPluginBase, EditorPlugin);
 
-#ifdef TOOLS_ENABLED
-	if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
-		// Nothing to clean up for editor level.
-	}
-#endif
-}
+protected:
+        Ref<GameViewDebugger> debugger;
+
+public:
+        GameViewPluginBase();
+        Ref<GameViewDebugger> get_debugger() const { return debugger; }
+};
+
+class GameViewPlugin : public GameViewPluginBase {
+        GDCLASS(GameViewPlugin, GameViewPluginBase);
+
+public:
+        GameViewPlugin();
+};

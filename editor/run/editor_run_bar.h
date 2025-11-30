@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  register_types.cpp                                                    */
+/*  editor_run_bar.h                                                      */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,38 +28,53 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "register_types.h"
+#pragma once
 
-#include "core/object/class_db.h"
-#include "qmod_exporter.h"
-#include "qmod_loader.h"
+#include "core/object/ref_counted.h"
+#include "scene/gui/box_container.h"
+#include "scene/gui/button.h"
 
-#ifdef TOOLS_ENABLED
-#include "editor/plugins/editor_plugin.h"
-#include "qmod_editor_plugin.h"
-#endif
+class EditorRunBar : public HBoxContainer {
+        GDCLASS(EditorRunBar, HBoxContainer);
 
-void initialize_qmod_module(ModuleInitializationLevel p_level) {
-	if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
-		GDREGISTER_CLASS(QModExporter);
-		GDREGISTER_CLASS(QModLoader);
-	}
+        static EditorRunBar *singleton;
 
-#ifdef TOOLS_ENABLED
-	if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
-		EditorPlugins::add_by_type<QModEditorPlugin>();
-	}
-#endif
-}
+        Button *play_button = nullptr;
+        Button *pause_button = nullptr;
+        Button *stop_button = nullptr;
+        HBoxContainer *button_container = nullptr;
 
-void uninitialize_qmod_module(ModuleInitializationLevel p_level) {
-	if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
-		// Nothing to clean up for scene level.
-	}
+        bool playing = false;
+        bool movie_maker_enabled = false;
+        String playing_scene;
 
-#ifdef TOOLS_ENABLED
-	if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
-		// Nothing to clean up for editor level.
-	}
-#endif
-}
+        void _emit_play(const String &p_scene_path, const Vector<String> &p_args, bool p_from_native);
+
+protected:
+        static void _bind_methods();
+        void _play_button_pressed();
+        void _stop_button_pressed();
+        void _pause_toggled(bool p_pressed);
+
+public:
+        static EditorRunBar *get_singleton();
+
+        EditorRunBar();
+        ~EditorRunBar();
+
+        void play_main_scene(bool p_from_native = false, const Vector<String> &p_args = Vector<String>());
+        void play_current_scene(bool p_from_native = false, const Vector<String> &p_args = Vector<String>());
+        void play_custom_scene(const String &p_scene, const Vector<String> &p_args = Vector<String>(), bool p_from_native = false);
+        void stop_playing();
+
+        bool is_playing() const;
+        String get_playing_scene() const;
+
+        Button *get_pause_button() const;
+        HBoxContainer *get_buttons_container() const;
+
+        void set_movie_maker_enabled(bool p_enabled);
+        bool is_movie_maker_enabled() const;
+
+        void update_profiler_autostart_indicator();
+};
